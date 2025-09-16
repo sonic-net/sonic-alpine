@@ -1,0 +1,185 @@
+name: "twodut-alpine"
+nodes: {
+    name: "alpine-dut"
+    vendor: ALPINE
+    config: {
+        image: "container.registry.url/gpins-containers/alpine-vs:ga"
+        args: "--target_port=50000"
+        vendor_data {
+            [type.googleapis.com/alpine.AlpineConfig] {
+                containers: {
+                    name: "dataplane"
+                    image: "container.registry.url/lucius:ga"
+                    command: "/lucius/lucius"
+                    args: "--alsologtostderr"
+                }
+            }
+        }
+        config_path: "/etc/sonic"
+        config_file: "config_db.json"
+        file: "config_db_alpine_vs.json"
+    }
+    services:{
+        key: 22
+        value: {
+            name: "ssh"
+            inside: 22
+        }
+    }
+    services:{
+        key: 9339
+        value: {
+            names: "gnmi"
+            names: "gnoi"
+            names: "gnsi"
+            inside: 9339
+        }
+    }
+    services:{
+        key: 9559
+        value: {
+            name: "p4rt"
+            inside: 9559
+        }
+    }
+}
+nodes: {
+    name: "alpine-ctl"
+    vendor: ALPINE
+    config: {
+        image: "container.registry.url/gpins-containers/alpine-vs:ga"
+        args: "--target_port=50000"
+        vendor_data {
+            [type.googleapis.com/alpine.AlpineConfig] {
+                containers: {
+                    name: "dataplane"
+                    image: "container.registry.url/lucius:ga"
+                    command: "/lucius/lucius"
+                    args: "--alsologtostderr"
+                }
+            }
+        }
+        config_path: "/etc/sonic"
+        config_file: "config_db.json"
+        file: "config_db_alpine_vs.json"
+    }
+    services:{
+        key: 22
+        value: {
+            name: "ssh"
+            inside: 22
+        }
+    }
+    services:{
+        key: 9339
+        value: {
+            names: "gnmi"
+            names: "gnoi"
+            names: "gnsi"
+            inside: 9339
+        }
+    }
+    services:{
+        key: 9559
+        value: {
+            name: "p4rt"
+            inside: 9559
+        }
+    }
+}
+links: {
+    a_node: "alpine-dut"
+    a_int: "eth1"
+    z_node: "alpine-ctl"
+    z_int: "eth1"
+}
+links: {
+    a_node: "alpine-dut"
+    a_int: "eth2"
+    z_node: "alpine-ctl"
+    z_int: "eth2"
+}
+links: {
+    a_node: "alpine-dut"
+    a_int: "eth3"
+    z_node: "alpine-ctl"
+    z_int: "eth3"
+}
+links: {
+    a_node: "alpine-dut"
+    a_int: "eth4"
+    z_node: "alpine-ctl"
+    z_int: "eth4"
+}
+links: {
+    a_node: "alpine-dut"
+    a_int: "eth5"
+    z_node: "alpine-ctl"
+    z_int: "eth5"
+}
+links: {
+    a_node: "alpine-dut"
+    a_int: "eth6"
+    z_node: "alpine-ctl"
+    z_int: "eth6"
+}
+links: {
+    a_node: "alpine-dut"
+    a_int: "eth7"
+    z_node: "alpine-ctl"
+    z_int: "eth7"
+}
+links: {
+    a_node: "alpine-dut"
+    a_int: "eth8"
+    z_node: "alpine-ctl"
+    z_int: "eth8"
+}
+links: {
+    a_node: "alpine-dut"
+    a_int: "eth9"
+    z_node: "alpine-ctl"
+    z_int: "eth9"
+}
+links: {
+    a_node: "alpine-dut"
+    a_int: "eth10"
+    z_node: "alpine-ctl"
+    z_int: "eth10"
+}
+links: {
+    a_node: "alpine-dut"
+    a_int: "eth11"
+    z_node: "alpine-ctl"
+    z_int: "eth11"
+}
+links: {
+    a_node: "alpine-dut"
+    a_int: "eth12"
+    z_node: "alpine-ctl"
+    z_int: "eth12"
+}
+links: {
+    a_node: "alpine-dut"
+    a_int: "eth13"
+    z_node: "alpine-ctl"
+    z_int: "eth13"
+}
+links: {
+    a_node: "alpine-dut"
+    a_int: "eth14"
+    z_node: "alpine-ctl"
+    z_int: "eth14"
+}
+links: {
+    a_node: "alpine-dut"
+    a_int: "eth15"
+    z_node: "alpine-ctl"
+    z_int: "eth15"
+}
+links: {
+    a_node: "alpine-dut"
+    a_int: "eth16"
+    z_node: "alpine-ctl"
+    z_int: "eth16"
+}
