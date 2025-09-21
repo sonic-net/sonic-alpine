@@ -1,0 +1,66 @@
+type: INSERT
+  table_entry {
+    router_interface_table_entry {
+      match { router_interface_id: "rif-1" }
+      action {
+        set_port_and_src_mac { port: "1" src_mac: "00:00:11:11:00:00" }
+      }
+    }
+  }
+***
+ type: INSERT
+            table_entry {
+              neighbor_table_entry {
+                match { router_interface_id: "rif-1" neighbor_id: "aa:bb::" }
+                action { set_dst_mac { dst_mac: "3c:28:6d:34:c0:02" } }
+              }
+            }
+***
+ type: INSERT
+  table_entry {
+    nexthop_table_entry {
+      match { nexthop_id: "nexthop-1" }
+      action { set_ip_nexthop { router_interface_id: "rif-1" neighbor_id: "aa:bb::" } }
+    }
+  }
+***
+type: INSERT
+table_entry {
+                 vrf_table_entry {
+                        match {
+                                vrf_id: "Vrf-80"
+                         }
+                         action {
+                                 no_action {
+                                }
+                        }
+}
+}
+***
+type: INSERT
+table_entry {
+    acl_pre_ingress_table_entry {
+        match { in_port { value: "1" } }
+        action { set_vrf { vrf_id: "Vrf-80" } }
+      priority: 1129
+    }
+}
+***
+type: INSERT
+table_entry {
+ipv6_table_entry {
+ match {
+   vrf_id: "Vrf-80"
+   ipv6_dst {
+     value: "aa:bb::"
+     prefix_length: 64
+   }
+ }
+ action {
+    set_nexthop_id {
+      nexthop_id: "nexthop-1"
+    }
+}
+}
+}
+***
