@@ -1,0 +1,14 @@
+[Unit]
+Description=AlpineVS APPL_STATE_DB
+Requires=database.service updategraph.service
+After=database.service updategraph.service swss.service
+BindsTo=sonic.target
+After=sonic.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/alpinevs-appdb.sh
+
+[Install]
+WantedBy=sonic.target
