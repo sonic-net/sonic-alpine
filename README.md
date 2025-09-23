@@ -55,14 +55,16 @@ kne create twodut-alpine.pb.txt
 - [Terminal1] SSH to the AlpineVS DUT Switch VM inside the deployment:
 ```
 ssh-keygen -f /tmp/id_rsa -N ""
-Set IPDUT var to the EXTERNAL-IP of "kubectl get svc -n twodut-alpine service-alpine-dut"
+#Set IPDUT var to the EXTERNAL-IP of "kubectl get svc -n twodut-alpine service-alpine-dut"
+export IPDUT=kubectl get svc service-alpine-dut -n twodut-alpine -o jsonpath='{.status.loadBalancer.ingress[*].ip}'
 ssh-copy-id -i /tmp/id_rsa.pub -oProxyCommand=none admin@$IPDUT
 ssh -i /tmp/id_rsa -oProxyCommand=none admin@$IPDUT
 ```
 - [Terminal2] SSH to the AlpineVS Control Switch VM inside the deployment:
 ```
 ssh-keygen -f /tmp/id_rsa -N ""
-Set IPCTL var to the EXTERNAL-IP of "kubectl get svc -n twodut-alpine service-alpine-ctl"
+#Set IPCTL var to the EXTERNAL-IP of "kubectl get svc -n twodut-alpine service-alpine-ctl"
+export IPCTL=kubectl get svc service-alpine-ctl -n twodut-alpine -o jsonpath='{.status.loadBalancer.ingress[*].ip}'
 ssh-copy-id -i /tmp/id_rsa.pub -oProxyCommand=none admin@$IPCTL
 ssh -i /tmp/id_rsa -oProxyCommand=none admin@$IPCTL
 ```
