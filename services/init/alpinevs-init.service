@@ -1,0 +1,13 @@
+[Unit]
+Description=AlpineVS initial setup
+Requires=rc-local.service
+After=rc-local.service
+Before=database.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/alpinevs-init.sh
+
+[Install]
+WantedBy=multi-user.target

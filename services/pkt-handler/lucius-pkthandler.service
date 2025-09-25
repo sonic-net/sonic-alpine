@@ -1,0 +1,15 @@
+[Unit]
+Description=Lucius Packet Handler
+Wants=network-online.target
+After=network-online.target
+# Infinite restarts when starting
+StartLimitIntervalSec=0 
+
+[Service]
+Type=exec
+ExecStart=/usr/bin/pkt-handler --alsologtostderr
+Restart=always
+RestartSec=1
+
+[Install]
+WantedBy=multi-user.target
