@@ -1,0 +1,14 @@
+smartctl 7.4 2023-08-01 r5530 [x86_64-linux-6.1.55-planetbde] (local build)
+Copyright (C) 2002-23, Bruce Allen, Christian Franke, www.smartmontools.org
+
+=== START OF INFORMATION SECTION ===
+Device Model:     alpine_vs
+Serial Number:    Alpine00
+User Capacity:    24,000,000,000 bytes [24.0 GB]
+Sector Sizes:     512 bytes logical, 4096 bytes physical
+Rotation Rate:    Solid State Device
+Form Factor:      3 inches
+SMART support is: Available - device has SMART capability.
+SMART support is: Enabled
+
+The above only provides legacy SMART information - try 'smartctl -x' for more
