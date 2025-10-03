@@ -1,0 +1,135 @@
+diff --git a/inc/sainexthopgroup.h b/inc/sainexthopgroup.h
+index 4b7821f..cb4ed6c 100644
+--- a/inc/sainexthopgroup.h
++++ b/inc/sainexthopgroup.h
+@@ -56,6 +56,9 @@ typedef enum _sai_next_hop_group_type_t
+     /** Next hop group is class-based, with members selected by Forwarding class */
+     SAI_NEXT_HOP_GROUP_TYPE_CLASS_BASED,
+ 
++    /** Next hop group is ECMP, with members specified with the group */
++    SAI_NEXT_HOP_GROUP_TYPE_ECMP_WITH_MEMBERS,
++
+     /* Other types of next hop group to be defined in the future, e.g., WCMP */
+ 
+ } sai_next_hop_group_type_t;
+@@ -107,6 +110,8 @@ typedef enum _sai_next_hop_group_attr_t
+     /**
+      * @brief Next hop member list
+      *
++     * Not valid when SAI_NEXT_HOP_GROUP_ATTR_TYPE == SAI_NEXT_HOP_GROUP_TYPE_ECMP_WITH_MEMBERS
++     *
+      * @type sai_object_list_t
+      * @flags READ_ONLY
+      * @objects SAI_OBJECT_TYPE_NEXT_HOP_GROUP_MEMBER
+@@ -232,6 +237,42 @@ typedef enum _sai_next_hop_group_attr_t
+      */
+     SAI_NEXT_HOP_GROUP_ATTR_ARS_PORT_REASSIGNMENTS,
+ 
++    /**
++     * @brief Next hop member list in the order specified by the application
++     *
++     * NH OID list length should match weight list length
++     *
++     * @type sai_object_list_t
++     * @flags CREATE_AND_SET
++     * @objects SAI_OBJECT_TYPE_NEXT_HOP
++     * @default empty
++     * @validonly SAI_NEXT_HOP_GROUP_ATTR_TYPE == SAI_NEXT_HOP_GROUP_TYPE_ECMP_WITH_MEMBERS
++     */
++    SAI_NEXT_HOP_GROUP_ATTR_NEXT_HOP_LIST,
++
++    /**
++     * @brief Next hop member weight list
++     *
++     * @type sai_u32_list_t
++     * @flags CREATE_AND_SET
++     * @default empty
++     * @validonly SAI_NEXT_HOP_GROUP_ATTR_TYPE == SAI_NEXT_HOP_GROUP_TYPE_ECMP_WITH_MEMBERS
++     */
++    SAI_NEXT_HOP_GROUP_ATTR_NEXT_HOP_MEMBER_WEIGHT_LIST,
++
++    /**
++     * @brief Next hop member counter list
++     *
++     * When it is empty, then packet hits won't be counted
++     *
++     * @type sai_object_list_t
++     * @flags CREATE_AND_SET
++     * @objects SAI_OBJECT_TYPE_COUNTER
++     * @default empty
++     * @validonly SAI_NEXT_HOP_GROUP_ATTR_TYPE == SAI_NEXT_HOP_GROUP_TYPE_ECMP_WITH_MEMBERS
++     */
++    SAI_NEXT_HOP_GROUP_ATTR_NEXT_HOP_MEMBER_COUNTER_LIST,
++
+     /**
+      * @brief End of attributes
+      */
+@@ -607,6 +648,11 @@ typedef struct _sai_next_hop_group_api_t
+     sai_get_next_hop_group_map_attribute_fn    get_next_hop_group_map_attribute;
+     sai_bulk_object_set_attribute_fn           set_next_hop_group_members_attribute;
+     sai_bulk_object_get_attribute_fn           get_next_hop_group_members_attribute;
++    sai_bulk_object_create_fn                  create_next_hop_groups;
++    sai_bulk_object_remove_fn                  remove_next_hop_groups;
++    sai_bulk_object_set_attribute_fn           set_next_hop_groups_attribute;
++    sai_bulk_object_get_attribute_fn           get_next_hop_groups_attribute;
++
+ } sai_next_hop_group_api_t;
+ 
+ /**
+diff --git a/inc/sairouterinterface.h b/inc/sairouterinterface.h
+index c3e65f2..74c4021 100644
+--- a/inc/sairouterinterface.h
++++ b/inc/sairouterinterface.h
+@@ -294,6 +294,15 @@ typedef enum _sai_router_interface_attr_t
+      */
+     SAI_ROUTER_INTERFACE_ATTR_ADMIN_MPLS_STATE,
+ 
++    /**
++     * @brief Label attribute used to uniquely identify router interface.
++     *
++     * @type char
++     * @flags CREATE_AND_SET
++     * @default ""
++     */
++    SAI_ROUTER_INTERFACE_ATTR_LABEL,
++
+     /**
+      * @brief End of attributes
+      */
+diff --git a/inc/saitypes.h b/inc/saitypes.h
+index 3ec3c99..67420e1 100644
+--- a/inc/saitypes.h
++++ b/inc/saitypes.h
+@@ -1800,6 +1800,32 @@ typedef struct _sai_stat_capability_list_t
+ 
+ } sai_stat_capability_list_t;
+ 
++/**
++ * @brief Stat capability under the stream telemetry mode
++ */
++typedef struct _sai_stat_st_capability_t
++{
++    /**
++     * @brief Typical stat capability
++     */
++    sai_stat_capability_t capability;
++
++    /**
++     * @brief Minimal polling interval in nanoseconds
++     *
++     * If polling interval is less than this value, it will be unacceptable.
++     */
++    uint64_t minimal_polling_interval;
++
++} sai_stat_st_capability_t;
++
++typedef struct _sai_stat_st_capability_list_t
++{
++    uint32_t count;
++    sai_stat_st_capability_t *list;
++
++} sai_stat_st_capability_list_t;
++
+ typedef enum _sai_object_stage_t
+ {
+     /** Common stage */
