@@ -1,0 +1,3 @@
+[submodule "libsai-grpc/lemming"]
+	path = libsai-grpc/lemming
+	url = https://github.com/openconfig/lemming.git

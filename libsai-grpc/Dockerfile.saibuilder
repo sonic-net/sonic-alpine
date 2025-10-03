@@ -1,0 +1,23 @@
+FROM debian:bookworm
+RUN apt-get update && apt-get install -y --no-install-recommends build-essential clang \
+    wget protobuf-compiler protobuf-compiler-grpc \
+    libgrpc++-dev libprotobuf-dev libgoogle-glog-dev git openjdk-17-jdk \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+RUN wget -q https://go.dev/dl/go1.21.6.linux-amd64.tar.gz
+RUN rm -rf /usr/local/go && tar -C /usr/local -xzf go1.21.6.linux-amd64.tar.gz
+RUN rm go1.21.6.linux-amd64.tar.gz
+ENV PATH="$PATH:/usr/local/go/bin"
+ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+ENV PATH="$PATH:$JAVA_HOME/bin"
+WORKDIR /build
+COPY sai.patch sai.patch
+RUN wget -q https://github.com/opencomputeproject/SAI/archive/refs/tags/v1.14.0.tar.gz && tar xf v1.14.0.tar.gz && rm v1.14.0.tar.gz
+RUN mkdir external && mv SAI-1.14.0 external/com_github_opencomputeproject_sai && patch -p1 -d external/com_github_opencomputeproject_sai < sai.patch
+
+COPY lemming/dataplane/proto/sai/* dataplane/proto/sai/
+COPY lemming/dataplane/standalone/sai/* dataplane/standalone/sai/
+COPY entrypoint.cc .
+COPY Makefile .
+
+RUN make libsai.so -j 48
