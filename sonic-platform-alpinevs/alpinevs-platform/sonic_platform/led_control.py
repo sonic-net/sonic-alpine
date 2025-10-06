@@ -108,8 +108,7 @@ class LedControl(LedBase):
       An LedState enum signifying the desired LED colour for the status.
     """
     # By default, assume link is down and change colour in priority order to
-    # determine final colour for LED. See the "Logic Flow" section in
-    # go/gpins-leds where priority order is defined.
+    # determine final colour for LED.
     led_colour = LedState.OFF
 
     if status[ADMIN_STATUS] != ADMIN_STATUS_GOOD:
@@ -136,8 +135,6 @@ class LedControl(LedBase):
     Returns:
       An LedState enum signifying the aggregated colour to use.
     """
-    # Colour aggregate defined in the "GPINs PAL LED Logic Implementation"
-    # section in go/gpins-led-design.
     if not colours:
       return LedState.OFF
     elif LedState.BLINK_AMBER in colours:
