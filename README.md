@@ -1,7 +1,7 @@
 ## Instructions
 
 ### Build
-1. Clone the gpins repo:
+1. Clone the SONiC repo:
 ```
 git clone https://github.com/sonic-net/sonic-buildimage.git
 ```
@@ -9,6 +9,13 @@ git clone https://github.com/sonic-net/sonic-buildimage.git
 ```
 export NOJESSIE=1 NOSTRETCH=1 NOBUSTER=1 NOBULLSEYE=1
 make init
+```
+Include these modules if required
+
+```
+echo "# Updates for Alpine" > rules/config.user
+echo "INCLUDE_SYSTEM_GNMI = y" >> rules/config.user
+echo "ENABLE_TRANSLIB_WRITE = y" >> rules/config.user
 ```
 3. Configure
 ```
