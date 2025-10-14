@@ -5,58 +5,71 @@
 ```
 git clone https://github.com/sonic-net/sonic-buildimage.git
 ```
+
 2. Init
 ```
 export NOJESSIE=1 NOSTRETCH=1 NOBUSTER=1 NOBULLSEYE=1
 make init
 ```
-Include these modules if required
 
+3. Enable build for modules of interest
+- P4RT
 ```
-echo "# Updates for Alpine" > rules/config.user
+echo "INCLUDE_P4RT = y" >> rules/config.user
+```
+- GNMI
+```
 echo "INCLUDE_SYSTEM_GNMI = y" >> rules/config.user
 echo "ENABLE_TRANSLIB_WRITE = y" >> rules/config.user
 ```
-3. Configure
+
+4. Configure
 ```
 PLATFORM=alpinevs make configure
 ```
-4. Build
+
+5. Build
 ```
 make target/sonic-alpinevs.img.gz
 ```
-5. Build alpinevs container
+
+6. Build alpinevs container
 ```
 ./alpine/build_alpinevs_container.sh
 ```
+
 ### Deploy
+Pre-requisite:
+A KVM enabled workstation (or VM) that can support VMs on it
 
-Pre-req:
-A KVM enabled workstation (or VM) which can support VMs on it
-
-1. Install KNE and setup KNE cluster
+1. [Download and install KNE](https://github.com/openconfig/kne). Setup KNE cluster
 ```
 kne deploy deploy/kne/kind-bridge.yaml
 ```
-2. Load alpinevs container image in kne:
+
+2. Load alpinevs container image in KNE
 ```
 kind load docker-image alpine-vs:latest --name kne
 ```
-3. Download Lemming. Build the Lucius dataplane and load it
+
+3. Download [Lemming](https://github.com/openconfig/lemming). Build the Lucius dataplane and load it
 ```
-https://github.com/openconfig/lemming
+gh repo clone openconfig/lemming
 cd lemming
 bazel build //dataplane/standalone/lucius:image-tar
 docker load -i bazel-bin/dataplane/standalone/lucius/image-tar/tarball.tar
 kind load docker-image us-west1-docker.pkg.dev/openconfig-lemming/release/lucius:ga --name kne
 
 ```
+
 4. Create 2 switch Alpine topology:
 
-- Modify the deploy/kne/twodut-alpine.pb.txt to point to the correct Alpine and Lucius images
+- Edit the [twodut-alpine.pb.txt](https://github.com/sonic-net/sonic-alpine/blob/master/deploy/kne/twodut-alpine-vs.pb.txt) file to point to the correct Alpine and Lucius images
+- Create the KNE topology
 ```
 kne create twodut-alpine.pb.txt
 ```
+
 5. Terminals
 
 - [Terminal1] SSH to the AlpineVS DUT Switch VM inside the deployment:
