@@ -1,0 +1,141 @@
+name: "twodut-alpine-otg"
+
+# ---------------------------
+# Node: alpine-dut
+# ---------------------------
+nodes: {
+  name: "alpine-dut"
+  vendor: ALPINE
+  model: "ALPINE"
+  config: {
+    image: "alpine-vs:ga"
+    args: "--target_port=50000"
+    vendor_data {
+      [type.googleapis.com/alpine.AlpineConfig] {
+        containers: {
+          name: "dataplane"
+          image: "us-west1-docker.pkg.dev/openconfig-lemming/release/lucius:ga"
+          command: "/lucius/lucius"
+          args: "--alsologtostderr"
+        }
+      }
+    }
+    config_path: "/etc/sonic"
+    config_file: "config_db.json"
+    file: "config_db_alpine_vs.json"
+  }
+  services:{ key: 22   value: { name: "ssh"  inside: 22   } }
+  services:{ key: 9339 value: { names: "gnmi" names: "gnoi" names: "gnsi" inside: 9339 } }
+  services:{ key: 9559 value: { name: "p4rt" inside: 9559 } }
+}
+
+# ---------------------------
+# Node: alpine-ctl 
+# ---------------------------
+nodes: {
+  name: "alpine-ctl"
+  vendor: ALPINE
+  model: "ALPINE"
+  config: {
+    image: "alpine-vs:ga"
+    args: "--target_port=50000"
+    vendor_data {
+      [type.googleapis.com/alpine.AlpineConfig] {
+        containers: {
+          name: "dataplane"
+          image: "us-west1-docker.pkg.dev/openconfig-lemming/release/lucius:ga"
+          command: "/lucius/lucius"
+          args: "--alsologtostderr"
+        }
+      }
+    }
+    config_path: "/etc/sonic"
+    config_file: "config_db.json"
+    file: "config_db_alpine_vs.json"
+  }
+  services:{ key: 22   value: { name: "ssh"  inside: 22   } }
+  services:{ key: 9339 value: { names: "gnmi" names: "gnoi" names: "gnsi" inside: 9339 } }
+  services:{ key: 9559 value: { name: "p4rt" inside: 9559 } }
+}
+
+# ---------------------------
+# Node: otg (ixia-c traffic gen) 
+# ---------------------------
+nodes: {
+  name: "otg"
+  vendor: KEYSIGHT
+  version: "1.14.0-1"
+}
+
+# ---------------------------
+# Links DUT<->CTL 
+# ---------------------------
+links: { a_node: "alpine-dut" a_int: "eth1"  z_node: "alpine-ctl" z_int: "eth1"  }
+links: { a_node: "alpine-dut" a_int: "eth2"  z_node: "alpine-ctl" z_int: "eth2"  }
+links: { a_node: "alpine-dut" a_int: "eth3"  z_node: "alpine-ctl" z_int: "eth3"  }
+links: { a_node: "alpine-dut" a_int: "eth4"  z_node: "alpine-ctl" z_int: "eth4"  }
+links: { a_node: "alpine-dut" a_int: "eth5"  z_node: "alpine-ctl" z_int: "eth5"  }
+links: { a_node: "alpine-dut" a_int: "eth6"  z_node: "alpine-ctl" z_int: "eth6"  }
+links: { a_node: "alpine-dut" a_int: "eth7"  z_node: "alpine-ctl" z_int: "eth7"  }
+links: { a_node: "alpine-dut" a_int: "eth8"  z_node: "alpine-ctl" z_int: "eth8"  }
+links: { a_node: "alpine-dut" a_int: "eth9"  z_node: "alpine-ctl" z_int: "eth9"  }
+links: { a_node: "alpine-dut" a_int: "eth10" z_node: "alpine-ctl" z_int: "eth10" }
+links: { a_node: "alpine-dut" a_int: "eth11" z_node: "alpine-ctl" z_int: "eth11" }
+links: { a_node: "alpine-dut" a_int: "eth12" z_node: "alpine-ctl" z_int: "eth12" }
+links: { a_node: "alpine-dut" a_int: "eth15" z_node: "alpine-ctl" z_int: "eth15" }
+links: { a_node: "alpine-dut" a_int: "eth16" z_node: "alpine-ctl" z_int: "eth16" }
+links: { a_node: "alpine-dut" a_int: "eth17" z_node: "alpine-ctl" z_int: "eth17" }
+links: { a_node: "alpine-dut" a_int: "eth18" z_node: "alpine-ctl" z_int: "eth18" }
+links: { a_node: "alpine-dut" a_int: "eth19" z_node: "alpine-ctl" z_int: "eth19" }
+links: { a_node: "alpine-dut" a_int: "eth20" z_node: "alpine-ctl" z_int: "eth20" }
+links: { a_node: "alpine-dut" a_int: "eth21" z_node: "alpine-ctl" z_int: "eth21" }
+links: { a_node: "alpine-dut" a_int: "eth22" z_node: "alpine-ctl" z_int: "eth22" }
+links: { a_node: "alpine-dut" a_int: "eth23" z_node: "alpine-ctl" z_int: "eth23" }
+links: { a_node: "alpine-dut" a_int: "eth24" z_node: "alpine-ctl" z_int: "eth24" }
+links: { a_node: "alpine-dut" a_int: "eth25" z_node: "alpine-ctl" z_int: "eth25" }
+links: { a_node: "alpine-dut" a_int: "eth26" z_node: "alpine-ctl" z_int: "eth26" }
+links: { a_node: "alpine-dut" a_int: "eth27" z_node: "alpine-ctl" z_int: "eth27" }
+links: { a_node: "alpine-dut" a_int: "eth28" z_node: "alpine-ctl" z_int: "eth28" }
+links: { a_node: "alpine-dut" a_int: "eth29" z_node: "alpine-ctl" z_int: "eth29" }
+links: { a_node: "alpine-dut" a_int: "eth30" z_node: "alpine-ctl" z_int: "eth30" }
+links: { a_node: "alpine-dut" a_int: "eth31" z_node: "alpine-ctl" z_int: "eth31" }
+links: { a_node: "alpine-dut" a_int: "eth32" z_node: "alpine-ctl" z_int: "eth32" }
+links: { a_node: "alpine-dut" a_int: "eth33" z_node: "alpine-ctl" z_int: "eth33" }
+links: { a_node: "alpine-dut" a_int: "eth34" z_node: "alpine-ctl" z_int: "eth34" }
+links: { a_node: "alpine-dut" a_int: "eth35" z_node: "alpine-ctl" z_int: "eth35" }
+links: { a_node: "alpine-dut" a_int: "eth36" z_node: "alpine-ctl" z_int: "eth36" }
+links: { a_node: "alpine-dut" a_int: "eth37" z_node: "alpine-ctl" z_int: "eth37" }
+links: { a_node: "alpine-dut" a_int: "eth38" z_node: "alpine-ctl" z_int: "eth38" }
+links: { a_node: "alpine-dut" a_int: "eth39" z_node: "alpine-ctl" z_int: "eth39" }
+links: { a_node: "alpine-dut" a_int: "eth40" z_node: "alpine-ctl" z_int: "eth40" }
+links: { a_node: "alpine-dut" a_int: "eth41" z_node: "alpine-ctl" z_int: "eth41" }
+links: { a_node: "alpine-dut" a_int: "eth42" z_node: "alpine-ctl" z_int: "eth42" }
+links: { a_node: "alpine-dut" a_int: "eth43" z_node: "alpine-ctl" z_int: "eth43" }
+links: { a_node: "alpine-dut" a_int: "eth44" z_node: "alpine-ctl" z_int: "eth44" }
+links: { a_node: "alpine-dut" a_int: "eth45" z_node: "alpine-ctl" z_int: "eth45" }
+links: { a_node: "alpine-dut" a_int: "eth46" z_node: "alpine-ctl" z_int: "eth46" }
+links: { a_node: "alpine-dut" a_int: "eth47" z_node: "alpine-ctl" z_int: "eth47" }
+links: { a_node: "alpine-dut" a_int: "eth48" z_node: "alpine-ctl" z_int: "eth48" }
+links: { a_node: "alpine-dut" a_int: "eth49" z_node: "alpine-ctl" z_int: "eth49" }
+links: { a_node: "alpine-dut" a_int: "eth50" z_node: "alpine-ctl" z_int: "eth50" }
+links: { a_node: "alpine-dut" a_int: "eth51" z_node: "alpine-ctl" z_int: "eth51" }
+links: { a_node: "alpine-dut" a_int: "eth52" z_node: "alpine-ctl" z_int: "eth52" }
+links: { a_node: "alpine-dut" a_int: "eth53" z_node: "alpine-ctl" z_int: "eth53" }
+links: { a_node: "alpine-dut" a_int: "eth54" z_node: "alpine-ctl" z_int: "eth54" }
+links: { a_node: "alpine-dut" a_int: "eth55" z_node: "alpine-ctl" z_int: "eth55" }
+links: { a_node: "alpine-dut" a_int: "eth56" z_node: "alpine-ctl" z_int: "eth56" }
+links: { a_node: "alpine-dut" a_int: "eth57" z_node: "alpine-ctl" z_int: "eth57" }
+links: { a_node: "alpine-dut" a_int: "eth58" z_node: "alpine-ctl" z_int: "eth58" }
+links: { a_node: "alpine-dut" a_int: "eth59" z_node: "alpine-ctl" z_int: "eth59" }
+links: { a_node: "alpine-dut" a_int: "eth60" z_node: "alpine-ctl" z_int: "eth60" }
+links: { a_node: "alpine-dut" a_int: "eth61" z_node: "alpine-ctl" z_int: "eth61" }
+links: { a_node: "alpine-dut" a_int: "eth62" z_node: "alpine-ctl" z_int: "eth62" }
+links: { a_node: "alpine-dut" a_int: "eth63" z_node: "alpine-ctl" z_int: "eth63" }
+links: { a_node: "alpine-dut" a_int: "eth64" z_node: "alpine-ctl" z_int: "eth64" }
+
+# TGEN (otg) to DUT/CTL using eth13-eth16
+links: { a_node: "otg" a_int: "eth1" z_node: "alpine-dut" z_int: "eth13" }
+links: { a_node: "otg" a_int: "eth2" z_node: "alpine-dut" z_int: "eth14" }
+links: { a_node: "otg" a_int: "eth3" z_node: "alpine-ctl" z_int: "eth13" }
+links: { a_node: "otg" a_int: "eth4" z_node: "alpine-ctl" z_int: "eth14" }
+
