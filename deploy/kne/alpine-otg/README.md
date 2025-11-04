@@ -8,10 +8,6 @@ This project provides a KNE-based topology with two Alpine switches (DUT and CTL
 - Traffic benchmarking across multiple port pairs
 - Network impairment testing (loss, delay, jitter)
 
-## Architecture
-
-
-
 ## Prerequisites
 
 - KVM-enabled workstation or VM
@@ -78,9 +74,7 @@ go install github.com/open-traffic-generator/otgen@latest
 ```
 
 
-```
-
-## Deployment
+## Installation
 
 ### 1. Create Topology
 
@@ -179,7 +173,6 @@ PKTS=50000 ./bench.sh
 # Turn on impairment
 IMP_LOSS=1 IMP_DELAY=10ms IMP_JITTER=2ms ./impair_on.sh
 
-# Run tests
 ./bench.sh
 
 # Turn off impairment
@@ -188,10 +181,10 @@ IMP_LOSS=1 IMP_DELAY=10ms IMP_JITTER=2ms ./impair_on.sh
 
 #### A/B Comparison (Baseline vs Impaired)
 ```bash
-# Full A/B test with automatic restore
+# Full A/B test
 IMP_LOSS=0.5 IMP_DELAY=5ms IMP_JITTER=1ms ./compare.sh
 
-# Or skip baseline if already done
+# skip baseline if already done
 SKIP_BASELINE=1 ./compare.sh
 ```
 
@@ -210,7 +203,7 @@ PORT_PAIRS="eth1,eth2;eth3,eth4" BIDIR=1 PPS=10000 ./scale_matrix.sh
 
 #### Complete Test Suite
 ```bash
-# Run everything (configuration, conformance, bench, scale, impairment, reports)
+# Run everything 
 ./smoke_all.sh
 ```
 
@@ -311,7 +304,7 @@ kubectl exec -n twodut-alpine-otg alpine-dut -c dataplane -- bridge link
 # Check CTL bridge
 kubectl exec -n twodut-alpine-otg alpine-ctl -c dataplane -- bridge link
 
-# Repair bridges (idempotent)
+# Repair bridges
 ./configuration.sh
 ```
 
@@ -339,36 +332,6 @@ ssh -i /tmp/id_rsa admin@$IPCTL
 kubectl exec -it -n twodut-alpine-otg alpine-dut -c dataplane -- bash
 ```
 
-## Testing Workflow
-
-Recommended workflow for comprehensive testing:
-
-```bash
-# 1. One-time setup
-./reset_cluster.sh
-source ../.env
-
-# 2. Validate environment
-./configuration.sh
-./conformance.sh
-
-# 3. Baseline testing
-./bench.sh
-./report.sh
-
-# 4. Scale testing (optional)
-PORT_PAIRS="eth1,eth2;eth3,eth4" BIDIR=1 ./scale_matrix.sh
-./report.sh
-
-# 5. Impairment testing
-IMP_LOSS=1 IMP_DELAY=10ms ./compare.sh
-
-# 6. Custom scenarios with DSL
-./nl_run.py "your test description here"
-
-# Or run everything at once:
-./smoke_all.sh
-```
 
 ## Performance Tips
 
