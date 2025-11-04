@@ -74,9 +74,7 @@ go install github.com/open-traffic-generator/otgen@latest
 ```
 
 
-```
-
-## Deployment
+## Installation
 
 ### 1. Create Topology
 
