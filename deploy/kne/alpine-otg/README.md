@@ -8,10 +8,6 @@ This project provides a KNE-based topology with two Alpine switches (DUT and CTL
 - Traffic benchmarking across multiple port pairs
 - Network impairment testing (loss, delay, jitter)
 
-## Architecture
-
-
-
 ## Prerequisites
 
 - KVM-enabled workstation or VM
