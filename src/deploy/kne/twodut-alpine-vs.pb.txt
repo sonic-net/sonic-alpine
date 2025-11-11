@@ -3,7 +3,7 @@ nodes: {
     name: "alpine-dut"
     vendor: ALPINE
     config: {
-        image: "container.registry.url/gpins-containers/alpine-vs:ga"
+        image: "alpine-vs:latest"
         args: "--target_port=50000"
         vendor_data {
             [type.googleapis.com/alpine.AlpineConfig] {
@@ -47,7 +47,7 @@ nodes: {
     name: "alpine-ctl"
     vendor: ALPINE
     config: {
-        image: "container.registry.url/gpins-containers/alpine-vs:ga"
+        image: "alpine-vs:latest"
         args: "--target_port=50000"
         vendor_data {
             [type.googleapis.com/alpine.AlpineConfig] {
