@@ -6,3 +6,7 @@ include $(PLATFORM_PATH)/onie.dep
 include $(PLATFORM_PATH)/kvm-image.dep
 include $(PLATFORM_PATH)/raw-image.dep
 include $(PLATFORM_PATH)/platform-alpinevs.dep
+include $(PLATFORM_PATH)/alpine-config.dep
+include $(PLATFORM_PATH)/alpine-init.dep
+include $(PLATFORM_PATH)/alpine-platform.dep
+include $(PLATFORM_PATH)/pkt-handler.dep

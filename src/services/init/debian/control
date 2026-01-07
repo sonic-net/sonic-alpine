@@ -1,0 +1,14 @@
+Source: alpine-init
+Section: admin
+Priority: optional
+Maintainer: Sonika Jindal <sonikajindal@google.com>
+Build-Depends: debhelper-compat (= 11)
+Standards-Version: 4.0.0
+
+Package: alpine-init
+Architecture: any
+Depends: ${misc:Depends}, bash, coreutils
+Description: Alpine platform init
+ This package contains the logic to mount folders and
+ prepare the config_db.json during early boot.
+

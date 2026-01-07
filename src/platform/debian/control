@@ -1,0 +1,14 @@
+Source: alpine-platform
+Section: misc
+Priority: optional
+Maintainer: Sonika Jindal <sonikajindal@google.com>
+Build-Depends: debhelper-compat (= 11)
+Standards-Version: 4.0.0
+
+Package: alpine-platform
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Alpine platform files
+ This package delivers the copp_cfg.j2 template and other 
+ static platform-specific files.
+

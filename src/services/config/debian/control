@@ -1,0 +1,14 @@
+Source: alpine-config
+Section: admin
+Priority: optional
+Maintainer: Sonika Jindal <sonikajindal@google.com>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.0.0
+
+Package: alpine-config
+Architecture: any
+Depends: ${misc:Depends}
+Description: Alpine platform config
+ This package populates the Redis databases with transceiver
+ and chassis information required for AlpineVS.
+

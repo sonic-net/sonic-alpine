@@ -1,0 +1,28 @@
+#!/bin/sh
+set -e
+
+# Helper to register services in SONiC
+add_service() {
+    SERVICE_FILE="/etc/sonic/generated_services.conf"
+    SERVICE_NAME="$1"
+    
+    if [ -f "$SERVICE_FILE" ]; then
+        # Avoid duplicate entries
+        if ! grep -q "$SERVICE_NAME" "$SERVICE_FILE"; then
+            echo "$SERVICE_NAME" >> "$SERVICE_FILE"
+        fi
+    fi
+    
+    # Enable the service in systemd
+    systemctl enable "$SERVICE_NAME" || true
+    if [ -d /run/systemd/system ]; then
+        systemctl start "$SERVICE_NAME" || true
+    fi
+}
+
+case "$1" in
+    configure)
+        chmod +x /usr/bin/alpinevs-config.sh
+        add_service "alpinevs-config.service"
+    ;;
+esac
