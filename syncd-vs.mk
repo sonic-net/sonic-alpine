@@ -4,7 +4,7 @@ SYNCD_VS = syncd-vs_1.0.0_$(CONFIGURED_ARCH).deb
 $(SYNCD_VS)_RDEPENDS += $(LIBSAIREDIS) $(LIBSAIMETADATA)
 $(eval $(call add_derived_package,$(LIBSAIREDIS),$(SYNCD_VS)))
 
-ifeq ($(BLDENV),bookworm)
+ifneq ($(filter $(BLDENV),trixie bookworm),)
 # dash-sai only support sonic-vs.img.gz. it don't support docker-sonic-vs.gz
 ifeq ($(findstring docker-sonic-vs, $(SONIC_BUILD_TARGET)), )
   $(LIBSAIREDIS)_DEB_BUILD_PROFILES += dashsai

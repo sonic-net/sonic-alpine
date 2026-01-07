@@ -2,7 +2,9 @@
 Description=AlpineVS initial setup
 Requires=rc-local.service
 After=rc-local.service
+DefaultDependencies=no
 Before=database.service
+Before=sonic-config.service
 
 [Service]
 Type=oneshot

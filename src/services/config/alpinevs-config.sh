@@ -4,9 +4,6 @@
 if [ -f /etc/sonic/config_db.json ]; then
     platform=$(grep -oP '"hwsku": "([^"]*)"' /etc/sonic/config_db.json | cut -d'"' -f 4)
 
-    # ADD PORT_TABLE:CPU in APPL_STATE_DB.
-    redis-cli -n 14 hmset "PORT_TABLE:CPU" "NULL" "NULL"
-
     # Add chassis info in StateDB
     redis-cli -n 6 hmset "CHASSIS_INFO|chassis" "serial" "Alpine00"
 
@@ -22,6 +19,10 @@ if [ -f /etc/sonic/config_db.json ]; then
     ;;
 
     esac
+
+    redis-cli -n 4 hmset "PORT|Ethernet0" "id" "1"
+    redis-cli -n 4 hmset "PORT|Ethernet4" "id" "2"
+    redis-cli -n 4 hmset "PORT|Ethernet8" "id" "7"
 
     echo "Setting transceiver info for "${platform}""
     redis-cli -n 6 hmset "TRANSCEIVER_INFO|Ethernet0" "parent" "1/1"
@@ -157,3 +158,6 @@ if [ -f /etc/sonic/config_db.json ]; then
     redis-cli -n 6 hmset "TRANSCEIVER_DOM_SENSOR|Ethernet124" "module_state" "ModuleReady"
 
 fi
+
+# ADD PORT_TABLE:CPU in APPL_STATE_DB.
+redis-cli -n 14 hmset "PORT_TABLE:CPU" "NULL" "NULL"

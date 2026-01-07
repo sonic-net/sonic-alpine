@@ -12,7 +12,8 @@ mount -t 9p configfolder /mnt/config && {
         platform=$(grep -oP '"hwsku": "([^"]*)"' /mnt/config/config_db.json | cut -d'"' -f 4)
         if [[ ! "${platform}" =~ "alpine" ]]; then
             echo "Ignore the passed config because it is not a Google Alpine platform!";
-            return
+            umount /mnt/config
+            exit 0
         fi
         rm -f /etc/sonic/alpinevs_ports.json
         # On init, copy config passed in topology to config_db.json.
@@ -22,6 +23,7 @@ mount -t 9p configfolder /mnt/config && {
         fi
         sed -i 's/^.*$/'"${platform}"'/g' /usr/share/sonic/device/x86_64-kvm_x86_64-r0/default_sku
     fi
+    umount /mnt/config
 }
 
 # If pkt handler is present, install it
@@ -37,4 +39,4 @@ fi
 
 # Create symlink for config CLI
 
-ln -s /usr/local/bin/config /usr/bin/config
+ln -sf /usr/local/bin/config /usr/bin/config

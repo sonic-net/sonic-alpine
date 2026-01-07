@@ -1,0 +1,2 @@
+# Source File                  # Destination Directory
+copp_cfg.j2                    usr/share/sonic/templates

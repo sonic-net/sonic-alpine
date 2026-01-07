@@ -1,0 +1,12 @@
+# Dependency file for Alpine platform specific files
+$(ALPINE_PLATFORM)_SRC_PATH := platform/alpinevs/src/platform
+DEP_FILES   := $(SONIC_COMMON_FILES_LIST) platform/alpinevs/alpine-platform.mk platform/alpinevs/alpine-platform.dep
+DEP_FILES   += $(SONIC_COMMON_BASE_FILES_LIST)
+
+# This line ensures that ANY file change in your source folder triggers a rebuild
+$(ALPINE_PLATFORM)_SMDEP_FILES = $(addprefix $($(ALPINE_PLATFORM)_SRC_PATH)/,$(shell cd $($(ALPINE_PLATFORM)_SRC_PATH) && git ls-files))
+
+$(ALPINE_PLATFORM)_CACHE_MODE  := GIT_CONTENT_SHA
+$(ALPINE_PLATFORM)_DEP_FLAGS   := $(SONIC_COMMON_FLAGS_LIST)
+$(ALPINE_PLATFORM)_DEP_FILES   := $(DEP_FILES)
+$(ALPINE_PLATFORM)_SMDEP_PATHS := $($(ALPINE_PLATFORM)_SRC_PATH)
