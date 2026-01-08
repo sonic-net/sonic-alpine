@@ -1,11 +1,11 @@
-Source: alpine-platform
+Source: alpine-device
 Section: misc
 Priority: optional
 Maintainer: Sonika Jindal <sonikajindal@google.com>
 Build-Depends: debhelper-compat (= 11)
 Standards-Version: 4.0.0
 
-Package: alpine-platform
+Package: alpine-device
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Alpine platform files
