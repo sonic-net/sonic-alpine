@@ -8,7 +8,7 @@ git clone https://github.com/sonic-net/sonic-buildimage.git
 
 2. Init
 ```
-export NOJESSIE=1 NOSTRETCH=1 NOBUSTER=1 NOBULLSEYE=1
+export NOJESSIE=1 NOSTRETCH=1 NOBUSTER=1 NOBULLSEYE=1 NOBOOKWORM=0 NOTRIXIE=0
 make init
 ```
 

@@ -1,3 +1,5 @@
 # Source File                    # Destination Directory
 alpinevs-init.sh                 usr/bin/
 alpinevs-init.service            lib/systemd/system/
+pmon_daemon_control.json         usr/share/sonic/device/x86_64-kvm_x86_64-r0/alpine_vs
+sai.profile                      usr/share/sonic/device/x86_64-kvm_x86_64-r0/alpine_vs
