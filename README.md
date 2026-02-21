@@ -1,5 +1,8 @@
 ## Instructions
 
+### Documentation
+The High Level Design of Alpine can be found [here](https://github.com/sonic-net/SONiC/blob/master/doc/alpine/alpine_hld.md)
+
 ### Build
 1. Clone the SONiC repo:
 ```
@@ -13,10 +16,20 @@ make init
 ```
 
 3. Enable build for modules of interest
+These are optional modules that are not necessary for the base alpine.
+
 - P4RT
 ```
 echo "INCLUDE_P4RT = y" >> rules/config.user
 ```
+
+- Pull the latest version of the sonic-pins repo
+
+```
+cd src/sonic-p4rt
+git submodule update --remote sonic-pins
+```
+
 - GNMI
 ```
 echo "INCLUDE_SYSTEM_GNMI = y" >> rules/config.user
@@ -29,8 +42,10 @@ PLATFORM=alpinevs make configure
 ```
 
 5. Build
+SONIC_BUILD_JOBS specifies the number of build tasks that will run parallely. It depends on the resources but a value of 8 or 16 is reasonable for most systems.
+
 ```
-make target/sonic-alpinevs.img.gz
+SONIC_BUILD_JOBS=24 make target/sonic-alpinevs.img.gz
 ```
 
 6. Build alpinevs container

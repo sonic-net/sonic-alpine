@@ -9,7 +9,7 @@ nodes: {
             [type.googleapis.com/alpine.AlpineConfig] {
                 containers: {
                     name: "dataplane"
-                    image: "container.registry.url/lucius:ga"
+                    image: "us-west1-docker.pkg.dev/openconfig-lemming/release/lucius:ga"
                     command: "/lucius/lucius"
                     args: "--alsologtostderr"
                 }
@@ -53,7 +53,7 @@ nodes: {
             [type.googleapis.com/alpine.AlpineConfig] {
                 containers: {
                     name: "dataplane"
-                    image: "container.registry.url/lucius:ga"
+                    image: "us-west1-docker.pkg.dev/openconfig-lemming/release/lucius:ga"
                     command: "/lucius/lucius"
                     args: "--alsologtostderr"
                 }
