@@ -12,6 +12,7 @@ git clone https://github.com/sonic-net/sonic-buildimage.git
 2. Init
 ```
 export NOJESSIE=1 NOSTRETCH=1 NOBUSTER=1 NOBULLSEYE=1 NOBOOKWORM=0 NOTRIXIE=0
+cd sonic-buildimage
 make init
 ```
 
@@ -35,6 +36,7 @@ Pull the latest version of the sonic-pins
 ```
 cd src/sonic-p4rt
 git submodule update --remote sonic-pins
+cd ..
 ```
 
 4. Configure
@@ -52,14 +54,17 @@ SONIC_BUILD_JOBS=16 make target/sonic-alpinevs.img.gz
 
 6. Build alpinevs container
 ```
-./alpine/build_alpinevs_container.sh
+platform/alpinevs/src/build/build_alpinevs_container.sh
 ```
 
 ### Deploy
 Pre-requisite:
 A KVM enabled workstation (or VM) that can support VMs on it
 
-1. [Download and install KNE](https://github.com/openconfig/kne). Setup KNE cluster
+1. [Download and install KNE](https://github.com/openconfig/kne). 
+
+Setup KNE cluster
+
 ```
 kne deploy deploy/kne/kind-bridge.yaml
 ```
