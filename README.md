@@ -61,7 +61,10 @@ platform/alpinevs/src/build/build_alpinevs_container.sh
 Pre-requisite:
 A KVM enabled workstation (or VM) that can support VMs on it
 
-1. [Download and install KNE](https://github.com/openconfig/kne). Setup KNE cluster
+1. [Download and install KNE](https://github.com/openconfig/kne). 
+
+Setup KNE cluster
+
 ```
 kne deploy deploy/kne/kind-bridge.yaml
 ```
