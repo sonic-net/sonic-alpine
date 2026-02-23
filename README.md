@@ -35,6 +35,7 @@ Pull the latest version of the sonic-pins
 ```
 cd src/sonic-p4rt
 git submodule update --remote sonic-pins
+cd ..
 ```
 
 4. Configure
@@ -52,7 +53,7 @@ SONIC_BUILD_JOBS=16 make target/sonic-alpinevs.img.gz
 
 6. Build alpinevs container
 ```
-./alpine/build_alpinevs_container.sh
+platform/alpinevs/src/build/build_alpinevs_container.sh
 ```
 
 ### Deploy
