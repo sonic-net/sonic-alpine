@@ -20,4 +20,4 @@ COPY lemming/dataplane/standalone/sai/* dataplane/standalone/sai/
 COPY entrypoint.cc .
 COPY Makefile .
 
-RUN make libsai.so -j 48
+RUN make libsai.so -j 4
