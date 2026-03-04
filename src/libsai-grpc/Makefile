@@ -20,8 +20,18 @@ dataplane/proto/sai/%.grpc.pb.o:  dataplane/proto/sai/%.grpc.pb.cc
 dataplane/standalone/sai/%.o: dataplane/standalone/sai/%.cc $(PROTO_SRC)
 	g++ -fPIC -c $< -o $@ -I . -I external/com_github_opencomputeproject_sai -I external/com_github_opencomputeproject_sai/inc  -I external/com_github_opencomputeproject_sai/experimental
 
-libsai.so: $(PROTO_OBJ) $(GRPC_OBJ) $(SAI_OBJ)
-	g++ -fPIC -o libsai.so -shared entrypoint.cc dataplane/proto/sai/*.o dataplane/standalone/sai/*.o -lglog -lprotobuf -lgrpc++ -I . -I external/com_github_opencomputeproject_sai -I external/com_github_opencomputeproject_sai/inc -I external/com_github_opencomputeproject_sai/experimental
+protos: $(PROTO_OBJ)
+grpc: $(GRPC_OBJ)
+
+# Add entrypoint.o to the objects
+ENTRYPOINT_OBJ = entrypoint.o
+
+# Add a rule to compile it separately
+$(ENTRYPOINT_OBJ): entrypoint.cc $(PROTO_SRC)
+	g++ -fPIC -c entrypoint.cc -o $@ -I . -I external/com_github_opencomputeproject_sai -I external/com_github_opencomputeproject_sai/inc -I external/com_github_opencomputeproject_sai/experimental
+
+libsai.so: $(PROTO_OBJ) $(GRPC_OBJ) $(SAI_OBJ) $(ENTRYPOINT_OBJ)
+	g++ -fPIC -o libsai.so -shared $(ENTRYPOINT_OBJ) dataplane/proto/sai/*.o dataplane/standalone/sai/*.o -lglog -lprotobuf -lgrpc++ -I . -I external/com_github_opencomputeproject_sai -I external/com_github_opencomputeproject_sai/inc -I external/com_github_opencomputeproject_sai/experimental
 
 lucius-libsai-bookworm:
 	DOCKER_BUILDKIT=1 docker build . -f Dockerfile.saibuilder -t lemming-libsai:latest

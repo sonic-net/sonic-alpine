@@ -36,7 +36,7 @@ Pull the latest version of the sonic-pins
 ```
 cd src/sonic-p4rt
 git submodule update --remote sonic-pins
-cd ..
+cd ../..
 ```
 
 4. Configure
@@ -132,7 +132,7 @@ kubectl get services -A | grep alpine
 twodut-alpine   service-alpine-ctl    LoadBalancer   10.96.215.178   192.168.8.51   22/TCP,9339/TCP,9559/TCP   16h
 twodut-alpine   service-alpine-dut    LoadBalancer   10.96.195.3     192.168.8.50   22/TCP,9339/TCP,9559/TCP   16h
 ```
-The password is set in your [sonic-buildimage/rules/config](https://github.com/sonic-net/sonic-buildimage/blob/master/rules/config#L56). You may want to change it to something simpler.
+The password is set in your [sonic-buildimage/rules/config](https://github.com/sonic-net/sonic-buildimage/blob/737879a82577bb2f102fd6de98cb4f708a6da177/rules/config#L78). You may want to change it to something simpler.
 
 5. Useful commands
 

@@ -15,9 +15,17 @@ COPY sai.patch sai.patch
 RUN wget -q https://github.com/opencomputeproject/SAI/archive/refs/tags/v1.14.0.tar.gz && tar xf v1.14.0.tar.gz && rm v1.14.0.tar.gz
 RUN mkdir external && mv SAI-1.14.0 external/com_github_opencomputeproject_sai && patch -p1 -d external/com_github_opencomputeproject_sai < sai.patch
 
-COPY lemming/dataplane/proto/sai/* dataplane/proto/sai/
-COPY lemming/dataplane/standalone/sai/* dataplane/standalone/sai/
-COPY entrypoint.cc .
 COPY Makefile .
 
-RUN make libsai.so -j 4
+# Stage 1: Generate and compile Protos
+COPY lemming/dataplane/proto/sai/* dataplane/proto/sai/
+RUN make -j$(nproc) protos
+
+# Stage 2: Compile Standalone SAI objects
+COPY lemming/dataplane/standalone/sai/* dataplane/standalone/sai/
+RUN make -j$(nproc) grpc
+
+# Stage 3: Final Link
+COPY entrypoint.cc .
+
+RUN --mount=type=cache,target=/root/.cache/ccache make -j$(nproc) libsai.so
