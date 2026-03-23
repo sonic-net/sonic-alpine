@@ -1,0 +1,381 @@
+ir_entities {
+  entities {
+    table_entry {
+      table_name: "acl_pre_ingress_table"
+      priority: 1
+      action {
+        name: "set_vrf"
+        params {
+          name: "vrf_id"
+          value {
+            str: "vrf-forward"
+          }
+        }
+      }
+    }
+  }
+  entities {
+    table_entry {
+      table_name: "ipv4_table"
+      matches {
+        name: "vrf_id"
+        exact {
+          str: "vrf-forward"
+        }
+      }
+      action {
+        name: "set_nexthop_id"
+        params {
+          name: "nexthop_id"
+          value {
+            str: "nexthop(2, vrf-forward)"
+          }
+        }
+      }
+    }
+  }
+  entities {
+    table_entry {
+      table_name: "l3_admit_table"
+      priority: 1
+      action {
+        name: "admit_to_l3"
+      }
+    }
+  }
+  entities {
+    table_entry {
+      table_name: "neighbor_table"
+      matches {
+        name: "router_interface_id"
+        exact {
+          str: "rif(2,06:05:04:03:02:01,no_vlan)"
+        }
+      }
+      matches {
+        name: "neighbor_id"
+        exact {
+          ipv6: "fe80::2:2ff:fe02:202"
+        }
+      }
+      action {
+        name: "set_dst_mac"
+        params {
+          name: "dst_mac"
+          value {
+            mac: "02:02:02:02:02:02"
+          }
+        }
+      }
+    }
+  }
+  entities {
+    table_entry {
+      table_name: "nexthop_table"
+      matches {
+        name: "nexthop_id"
+        exact {
+          str: "nexthop(2, vrf-forward)"
+        }
+      }
+      action {
+        name: "set_ip_nexthop"
+        params {
+          name: "router_interface_id"
+          value {
+            str: "rif(2,06:05:04:03:02:01,no_vlan)"
+          }
+        }
+        params {
+          name: "neighbor_id"
+          value {
+            ipv6: "fe80::2:2ff:fe02:202"
+          }
+        }
+      }
+    }
+  }
+  entities {
+    table_entry {
+      table_name: "router_interface_table"
+      matches {
+        name: "router_interface_id"
+        exact {
+          str: "rif(2,06:05:04:03:02:01,no_vlan)"
+        }
+      }
+      action {
+        name: "set_port_and_src_mac"
+        params {
+          name: "port"
+          value {
+            str: "2"
+          }
+        }
+        params {
+          name: "src_mac"
+          value {
+            mac: "06:05:04:03:02:01"
+          }
+        }
+      }
+    }
+  }
+  entities {
+    table_entry {
+      table_name: "vrf_table"
+      matches {
+        name: "vrf_id"
+        exact {
+          str: "vrf-forward"
+        }
+      }
+      action {
+        name: "no_action"
+      }
+    }
+  }
+  entities {
+    table_entry {
+      table_name: "acl_ingress_table"
+      matches {
+        name: "dst_mac"
+        ternary {
+          value {
+            mac: "01:01:01:01:01:01"
+          }
+          mask {
+            mac: "ff:ff:ff:ff:ff:ff"
+          }
+        }
+      }
+      priority: 2050
+      action {
+        name: "acl_trap"
+        params {
+          name: "qos_queue"
+          value {
+            str: "0x1"
+          }
+        }
+      }
+    }
+  }
+  entities {
+    table_entry {
+      table_name: "acl_ingress_table"
+      matches {
+        name: "dst_mac"
+        ternary {
+          value {
+            mac: "02:02:02:02:02:02"
+          }
+          mask {
+            mac: "ff:ff:ff:ff:ff:ff"
+          }
+        }
+      }
+      priority: 2050
+      action {
+        name: "acl_drop"
+      }
+    }
+  }
+}
+packet_test_vector_by_id {
+  key: 1
+  value {
+    input {
+      type: DATAPLANE
+      packet {
+        port: "1"
+        parsed {
+          headers {
+            ethernet_header {
+              ethernet_destination: "02:03:04:05:06:07"
+              ethernet_source: "00:01:02:03:04:05"
+              ethertype: "0x0800"
+            }
+          }
+          headers {
+            ipv4_header {
+              version: "0x4"
+              ihl: "0x5"
+              dscp: "0x1c"
+              ecn: "0x0"
+              total_length: "0x0050"
+              identification: "0x0000"
+              flags: "0x0"
+              fragment_offset: "0x0000"
+              ttl: "0x20"
+              protocol: "0xfe"
+              checksum: "0x4fec"
+              ipv4_source: "192.168.100.2"
+              ipv4_destination: "192.168.100.1"
+            }
+          }
+          payload: "test packet #1: manually crafted test packet to be forwarded"
+        }
+        hex: "0203040506070001020304050800457000500000000020fe4fecc0a86402c0a8640174657374207061636b65742023313a206d616e75616c6c7920637261667465642074657374207061636b657420746f20626520666f72776172646564"
+      }
+    }
+    acceptable_outputs {
+      packets {
+        port: "2"
+        parsed {
+          headers {
+            ethernet_header {
+              ethernet_destination: "02:02:02:02:02:02"
+              ethernet_source: "06:05:04:03:02:01"
+              ethertype: "0x0800"
+            }
+          }
+          headers {
+            ipv4_header {
+              version: "0x4"
+              ihl: "0x5"
+              dscp: "0x1c"
+              ecn: "0x0"
+              total_length: "0x0050"
+              identification: "0x0000"
+              flags: "0x0"
+              fragment_offset: "0x0000"
+              ttl: "0x1f"
+              protocol: "0xfe"
+              checksum: "0x50ec"
+              ipv4_source: "192.168.100.2"
+              ipv4_destination: "192.168.100.1"
+            }
+          }
+          payload: "test packet #1: manually crafted test packet to be forwarded"
+        }
+        hex: "020202020202060504030201080045700050000000001ffe50ecc0a86402c0a8640174657374207061636b65742023313a206d616e75616c6c7920637261667465642074657374207061636b657420746f20626520666f72776172646564"
+      }
+    }
+  }
+}
+packet_test_vector_by_id {
+  key: 2
+  value {
+    input {
+      type: DATAPLANE
+      packet {
+        port: "1"
+        parsed {
+          headers {
+            ethernet_header {
+              ethernet_destination: "01:01:01:01:01:01"
+              ethernet_source: "00:01:02:03:04:05"
+              ethertype: "0x0800"
+            }
+          }
+          headers {
+            ipv4_header {
+              version: "0x4"
+              ihl: "0x5"
+              dscp: "0x1c"
+              ecn: "0x0"
+              total_length: "0x004d"
+              identification: "0x0000"
+              flags: "0x0"
+              fragment_offset: "0x0000"
+              ttl: "0x20"
+              protocol: "0xfe"
+              checksum: "0x4fef"
+              ipv4_source: "192.168.100.2"
+              ipv4_destination: "192.168.100.1"
+            }
+          }
+          payload: "test packet #2: manually crafted test packet to be punted"
+        }
+        hex: "01010101010100010203040508004570004d0000000020fe4fefc0a86402c0a8640174657374207061636b65742023323a206d616e75616c6c7920637261667465642074657374207061636b657420746f2062652070756e746564"
+      }
+    }
+    acceptable_outputs {
+      packet_ins {
+        metadata {
+          name: "ingress_port"
+          value {
+            str: "1"
+          }
+        }
+        metadata {
+          name: "target_egress_port"
+          value {
+            str: "2"
+          }
+        }
+        parsed {
+          headers {
+            ethernet_header {
+              ethernet_destination: "01:01:01:01:01:01"
+              ethernet_source: "00:01:02:03:04:05"
+              ethertype: "0x0800"
+            }
+          }
+          headers {
+            ipv4_header {
+              version: "0x4"
+              ihl: "0x5"
+              dscp: "0x1c"
+              ecn: "0x0"
+              total_length: "0x004d"
+              identification: "0x0000"
+              flags: "0x0"
+              fragment_offset: "0x0000"
+              ttl: "0x20"
+              protocol: "0xfe"
+              checksum: "0x4fef"
+              ipv4_source: "192.168.100.2"
+              ipv4_destination: "192.168.100.1"
+            }
+          }
+          payload: "test packet #2: manually crafted test packet to be punted"
+        }
+        hex: "01010101010100010203040508004570004d0000000020fe4fefc0a86402c0a8640174657374207061636b65742023323a206d616e75616c6c7920637261667465642074657374207061636b657420746f2062652070756e746564"
+      }
+    }
+  }
+}
+packet_test_vector_by_id {
+  key: 3
+  value {
+    input {
+      type: DATAPLANE
+      packet {
+        port: "1"
+        parsed {
+          headers {
+            ethernet_header {
+              ethernet_destination: "02:02:02:02:02:02"
+              ethernet_source: "00:01:02:03:04:05"
+              ethertype: "0x0800"
+            }
+          }
+          headers {
+            ipv4_header {
+              version: "0x4"
+              ihl: "0x5"
+              dscp: "0x1c"
+              ecn: "0x0"
+              total_length: "0x004e"
+              identification: "0x0000"
+              flags: "0x0"
+              fragment_offset: "0x0000"
+              ttl: "0x20"
+              protocol: "0xfe"
+              checksum: "0x4fee"
+              ipv4_source: "192.168.100.2"
+              ipv4_destination: "192.168.100.1"
+            }
+          }
+          payload: "test packet #3: manually crafted test packet to be dropped"
+        }
+        hex: "02020202020200010203040508004570004e0000000020fe4feec0a86402c0a8640174657374207061636b65742023333a206d616e75616c6c7920637261667465642074657374207061636b657420746f2062652064726f70706564"
+      }
+    }
+    acceptable_outputs {
+    }
+  }
+}
+
