@@ -34,9 +34,7 @@ echo "INCLUDE_P4RT = y" >> rules/config.user
 Pull the latest version of the sonic-pins
 
 ```
-cd src/sonic-p4rt
-git submodule update --remote sonic-pins
-cd ../..
+git submodule update --remote src/sonic-p4rt/sonic-pins
 ```
 
 4. Configure
@@ -126,11 +124,14 @@ export IPCTL=kubectl get svc service-alpine-ctl -n twodut-alpine -o jsonpath='{.
 ssh-copy-id -i /tmp/id_rsa.pub -oProxyCommand=none admin@$IPCTL
 ssh -i /tmp/id_rsa -oProxyCommand=none admin@$IPCTL
 ```
-Alternately, you can get the external ip addresses directly from kubectl and use it for ssh
+
+Alternately, you can get the external ip addresses directly from kubectl and insert them in the ssh command
 ```
 kubectl get services -A | grep alpine
 twodut-alpine   service-alpine-ctl    LoadBalancer   10.96.215.178   192.168.8.51   22/TCP,9339/TCP,9559/TCP   16h
 twodut-alpine   service-alpine-dut    LoadBalancer   10.96.195.3     192.168.8.50   22/TCP,9339/TCP,9559/TCP   16h
+
+ssh admin@a.b.c.d -o ProxyCommand=none -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no
 ```
 The password is set in your [sonic-buildimage/rules/config](https://github.com/sonic-net/sonic-buildimage/blob/737879a82577bb2f102fd6de98cb4f708a6da177/rules/config#L78). You may want to change it to something simpler.
 
