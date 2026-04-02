@@ -1,6 +1,6 @@
 #DPKG FRK
 DPATH       := $($(SYNCD_VS)_PATH)
-DEP_FILES   := $(SONIC_COMMON_FILES_LIST) platform/vs/syncd-vs.mk platform/vs/syncd-vs.dep
+DEP_FILES   := $(SONIC_COMMON_FILES_LIST) platform/alpinevs/syncd-vs.mk platform/alpinevs/syncd-vs.dep
 DEP_FILES   += $(SONIC_COMMON_BASE_FILES_LIST)
 DEP_FILES   += $(shell git ls-files $(DPATH))
 
