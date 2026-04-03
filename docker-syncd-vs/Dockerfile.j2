@@ -11,6 +11,7 @@ RUN apt-get update
 
 RUN apt-get install -f -y libcap2-bin
 RUN apt-get install -f -y libgoogle-glog-dev
+RUN apt-get install -f -y libgrpc++1.51 libgrpc29 libprotobuf32 libprotoc-dev protobuf-compiler python3-protobuf libgrpc++-dev libgrpc-dev protobuf-compiler-grpc
 
 COPY debs/libnl-3-dev_{{ LIBNL3_VERSION_SONIC }}_{{ CONFIGURED_ARCH }}.deb debs/libnl-route-3-dev_{{ LIBNL3_VERSION_SONIC }}_{{ CONFIGURED_ARCH }}.deb debs/
 RUN dpkg -i debs/libnl-3-dev_{{ LIBNL3_VERSION_SONIC }}_{{ CONFIGURED_ARCH }}.deb debs/libnl-route-3-dev_{{ LIBNL3_VERSION_SONIC }}_{{ CONFIGURED_ARCH }}.deb
