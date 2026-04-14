@@ -1,0 +1,122 @@
+name: "build"
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  schedule:
+    - cron: '0 0 * * 0' # Every Sunday at midnight UTC
+jobs:
+  # Build the native packages
+  build-alpine:
+    name: Build Native Alpine Packages
+    runs-on: ubuntu-22.04
+    container: debian:trixie
+
+    steps:
+    # Install git first so the checkout action can handle submodules
+    - name: Pre-install git
+      run: |
+        apt-get update
+        apt-get install -y git
+
+    - uses: actions/checkout@v4
+
+    - name: Install system dependencies
+      run: |
+        chmod +x ./install_dependencies.sh
+        ./install_dependencies.sh
+
+    - name: Build Native Packages
+      run: |
+        echo "Building alpine-init..."
+        (cd src/services/init && dpkg-buildpackage -us -uc -b)
+
+        echo "Building alpine-config..."
+        (cd src/services/config && dpkg-buildpackage -us -uc -b)
+
+        echo "Building alpine-device..."
+        (cd src/sonic-platform-alpinevs/alpinevs-device && dpkg-buildpackage -us -uc -b)
+
+        echo "Building pkt-handler..."
+        (cd src/services/pkt-handler && dpkg-buildpackage -us -uc -b -d)
+
+    - name: Upload Alpine Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: alpine-native-debs
+        path: |
+          **/alpine-config_*.deb
+          **/alpine-device_*.deb
+          **/alpine-init_*.deb
+          **/lucius-pkthandler_*.deb
+
+  # Build lucius-libsai which runs inside its own docker
+  build-libsai:
+    name: Build lucius-libsai
+    runs-on: ubuntu-22.04
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Install Host Build Tools
+      run: |
+        chmod +x ./install_dependencies.sh
+        ./install_dependencies.sh
+
+    - name: Build lucius-libsai
+      run: |
+        echo "Building lucius-libsai..."
+        cd src/libsai-grpc
+
+        dpkg-buildpackage -us -uc -b
+
+    - name: Upload Libsai Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: alpine-docker-debs
+        path: |
+          **/lucius-libsai_*.deb
+
+  # Combine all artifacts into a single downloadable zip
+  merge-artifacts:
+    name: Merge All Packages into One Zip
+    needs: [build-alpine, build-libsai]
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write # Required to publish a GitHub Release
+
+    steps:
+      - name: Download all partial artifacts
+        uses: actions/download-artifact@v4
+        with:
+          # The wildcard catches both sets of debs
+          pattern: alpine-*-debs
+          merge-multiple: true
+          path: all-debs-merged
+
+      - name: Flatten directory structure
+        run: |
+          mkdir -p final-debs
+          # Added -v to mv so it logs every single file it touches
+          find all-debs-merged -type f -name "*.deb" -exec mv -v {} final-debs/ \;
+          ls -la final-debs/
+
+      - name: Upload single unified artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: alpine-debs
+          path: final-debs/*.deb
+          retention-days: 5
+
+      - name: Update Rolling Release
+        if: github.event_name == 'push' || github.event_name == 'schedule'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest-builds
+          files: final-debs/*.deb
+          body: "Automated build generated on ${{ github.event_name }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

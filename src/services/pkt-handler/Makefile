@@ -1,19 +1,18 @@
 export GO_VERSION := 1.23.4
-export GO_ROOT := /usr/lib/go-1.23
+export GO_LOCAL := $(CURDIR)/go_dist
+export CONFIGURED_ARCH ?= amd64
 
 all: pkt-handler
 
 pkt-handler:
-	/usr/local/go/bin/go version
+	@if [ ! -f $(GO_LOCAL)/bin/go ]; then \
+		echo "Downloading Go $(GO_VERSION)..."; \
+		mkdir -p $(GO_LOCAL); \
+		curl -L https://go.dev/dl/go$(GO_VERSION).linux-$(CONFIGURED_ARCH).tar.gz | tar -C $(GO_LOCAL) --strip-components=1 -xz; \
+	fi
 
-	echo "Installing Go $(GO_VERSION)...";
-	cd /tmp
-	sudo wget https://go.dev/dl/go$(GO_VERSION).linux-$(CONFIGURED_ARCH).tar.gz
-	sudo tar -C /usr/lib -xzf go$(GO_VERSION).linux-${CONFIGURED_ARCH}.tar.gz
-	sudo mv -f -T /usr/lib/go $(GO_ROOT)
-	rm go$(GO_VERSION).linux-*.tar.gz;
-
-	$(GO_ROOT)/bin/go build -o pkt-handler
+	$(GO_LOCAL)/bin/go version
+	$(GO_LOCAL)/bin/go build -buildvcs=false -o pkt-handler
 
 install:
 	install -D ./pkt-handler $(DESTDIR)/usr/bin/pkt-handler
