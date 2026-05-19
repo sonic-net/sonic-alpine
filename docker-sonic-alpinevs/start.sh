@@ -1,5 +1,7 @@
 #!/bin/bash -ex
 
+echo "DEBUG: start.sh initiated (3)" > /dev/kmsg
+
 ln -sf /usr/share/sonic/device/$PLATFORM /usr/share/sonic/platform
 ln -sf /usr/share/sonic/device/$PLATFORM/$HWSKU /usr/share/sonic/hwsku
 

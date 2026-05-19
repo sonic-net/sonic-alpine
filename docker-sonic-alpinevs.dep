@@ -2,7 +2,18 @@
 DPATH       := $($(DOCKER_SONIC_ALPINEVS)_PATH)
 DEP_FILES   := $(SONIC_COMMON_FILES_LIST) platform/alpinevs/docker-sonic-alpinevs.mk platform/alpinevs/docker-sonic-alpinevs.dep
 DEP_FILES   += $(SONIC_COMMON_BASE_FILES_LIST)
-DEP_FILES   += $(shell git ls-files $(DPATH))
+
+ALPINEVS_DOCKER_DEP_FILES := $(addprefix $(PLATFORM_PATH)/,\
+	$(shell git -C $(PLATFORM_PATH) ls-files docker-sonic-alpinevs))
+
+ALPINEVS_SERVICE_DEP_FILES := $(addprefix $(PLATFORM_PATH)/,\
+	$(shell git -C $(PLATFORM_PATH) ls-files \
+		src/services/pkt-handler \
+		src/services/init/alpinevs-init.sh \
+		src/services/config/alpinevs-config.sh))
+
+DEP_FILES += $(ALPINEVS_DOCKER_DEP_FILES)
+DEP_FILES += $(ALPINEVS_SERVICE_DEP_FILES)
 
 $(DOCKER_SONIC_ALPINEVS)_CACHE_MODE  := GIT_CONTENT_SHA
 $(DOCKER_SONIC_ALPINEVS)_DEP_FLAGS   := $(SONIC_COMMON_FLAGS_LIST)

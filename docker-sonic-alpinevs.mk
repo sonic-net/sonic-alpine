@@ -46,6 +46,10 @@ SONIC_DOCKER_IMAGES += $(DOCKER_SONIC_ALPINEVS)
 SONIC_TRIXIE_DOCKERS += $(DOCKER_SONIC_ALPINEVS)
 
 ALPINEVS_DOCKER_STAGING_DIR := $(PLATFORM_PATH)/docker-sonic-alpinevs/bin
+ALPINEVS_PKT_HANDLER_SRC_DIR := $(PLATFORM_PATH)/src/services/pkt-handler
+ALPINEVS_CONFIG_SRC := $(PLATFORM_PATH)/src/services/config/alpinevs-config.sh
+ALPINEVS_INIT_SRC := $(PLATFORM_PATH)/src/services/init/alpinevs-init.sh
+
 ALPINEVS_DOCKER_STAGE_FILES := \
 	$(ALPINEVS_DOCKER_STAGING_DIR)/pkt-handler \
 	$(ALPINEVS_DOCKER_STAGING_DIR)/alpinevs-config.sh \
@@ -54,15 +58,19 @@ ALPINEVS_DOCKER_STAGE_FILES := \
 $(ALPINEVS_DOCKER_STAGING_DIR):
 	mkdir -p $@
 
+# Always rebuild it before staging the Docker build-context copy
+.PHONY: $(ALPINEVS_DOCKER_STAGING_DIR)/pkt-handler
 $(ALPINEVS_DOCKER_STAGING_DIR)/pkt-handler: | $(ALPINEVS_DOCKER_STAGING_DIR)
-	$(MAKE) -C $(PLATFORM_PATH)/src/services/pkt-handler all
-	cp $(PLATFORM_PATH)/src/services/pkt-handler/pkt-handler $@
+	$(MAKE) -C $(ALPINEVS_PKT_HANDLER_SRC_DIR) clean
+	$(MAKE) -C $(ALPINEVS_PKT_HANDLER_SRC_DIR) all
+	cp $(ALPINEVS_PKT_HANDLER_SRC_DIR)/pkt-handler $@
 
-$(ALPINEVS_DOCKER_STAGING_DIR)/alpinevs-config.sh: | $(ALPINEVS_DOCKER_STAGING_DIR)
-	cp -L $(PLATFORM_PATH)/src/services/config/alpinevs-config.sh $@
+$(ALPINEVS_DOCKER_STAGING_DIR)/alpinevs-config.sh: \
+		$(ALPINEVS_CONFIG_SRC) | $(ALPINEVS_DOCKER_STAGING_DIR)
+	cp -L $< $@
 
-$(ALPINEVS_DOCKER_STAGING_DIR)/alpinevs-init.sh: | $(ALPINEVS_DOCKER_STAGING_DIR)
-	cp -L $(PLATFORM_PATH)/src/services/init/alpinevs-init.sh $@
+$(ALPINEVS_DOCKER_STAGING_DIR)/alpinevs-init.sh: \
+		$(ALPINEVS_INIT_SRC) | $(ALPINEVS_DOCKER_STAGING_DIR)
+	cp -L $< $@
 
 $(addprefix $(TARGET_PATH)/,$(DOCKER_SONIC_ALPINEVS)): $(ALPINEVS_DOCKER_STAGE_FILES)
-
