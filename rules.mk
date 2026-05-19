@@ -1,6 +1,7 @@
 include $(PLATFORM_PATH)/syncd-vs.mk
 include $(PLATFORM_PATH)/sonic-version.mk
 include $(PLATFORM_PATH)/docker-syncd-vs.mk
+include $(PLATFORM_PATH)/docker-sonic-alpinevs.mk
 include $(PLATFORM_PATH)/lemmingsai.mk
 include $(PLATFORM_PATH)/pkt-handler.mk
 include $(PLATFORM_PATH)/alpine-init.mk
@@ -27,4 +28,4 @@ $(SYNCD)_UNINSTALLS += $(LEMMINGSAI)
 $(ALPINE_INIT)_DEPENDS += $(SONIC_UTILITIES)
 $(ALPINE_CONFIG)_DEPENDS += $(SONIC_UTILITIES)
 
-SONIC_ALL += $(SONIC_ONE_IMAGE) $(SONIC_KVM_IMAGE) $(SYNCD_VS) $(SONIC_RAW_IMAGE)
+SONIC_ALL += $(SONIC_ONE_IMAGE) $(SONIC_KVM_IMAGE) $(SYNCD_VS) $(SONIC_RAW_IMAGE) $(DOCKER_SONIC_ALPINEVS)

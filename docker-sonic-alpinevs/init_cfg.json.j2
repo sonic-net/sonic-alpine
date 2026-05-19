@@ -1,0 +1,293 @@
+{
+    "DEVICE_METADATA": {
+        "localhost": {
+            "buffer_model": "traditional",
+            "synchronous_mode": "enable",
+            "default_bgp_status": "up",
+            "default_pfcwd_status": "disable",
+            "timezone": "UTC"
+        }
+    },
+    "CRM": {
+        "Config": {
+            "polling_interval": "300",
+            "ipv4_route_threshold_type": "percentage",
+            "ipv4_route_low_threshold": "70",
+            "ipv4_route_high_threshold": "85",
+            "ipv6_route_threshold_type": "percentage",
+            "ipv6_route_low_threshold": "70",
+            "ipv6_route_high_threshold": "85",
+            "ipv4_nexthop_threshold_type": "percentage",
+            "ipv4_nexthop_low_threshold": "70",
+            "ipv4_nexthop_high_threshold": "85",
+            "ipv6_nexthop_threshold_type": "percentage",
+            "ipv6_nexthop_low_threshold": "70",
+            "ipv6_nexthop_high_threshold": "85",
+            "ipv4_neighbor_threshold_type": "percentage",
+            "ipv4_neighbor_low_threshold": "70",
+            "ipv4_neighbor_high_threshold": "85",
+            "ipv6_neighbor_threshold_type": "percentage",
+            "ipv6_neighbor_low_threshold": "70",
+            "ipv6_neighbor_high_threshold": "85",
+            "nexthop_group_member_threshold_type": "percentage",
+            "nexthop_group_member_low_threshold": "70",
+            "nexthop_group_member_high_threshold": "85",
+            "nexthop_group_threshold_type": "percentage",
+            "nexthop_group_low_threshold": "70",
+            "nexthop_group_high_threshold": "85",
+            "acl_table_threshold_type": "percentage",
+            "acl_table_low_threshold": "70",
+            "acl_table_high_threshold": "85",
+            "acl_group_threshold_type": "percentage",
+            "acl_group_low_threshold": "70",
+            "acl_group_high_threshold": "85",
+            "acl_entry_threshold_type": "percentage",
+            "acl_entry_low_threshold": "70",
+            "acl_entry_high_threshold": "85",
+            "acl_counter_threshold_type": "percentage",
+            "acl_counter_low_threshold": "70",
+            "acl_counter_high_threshold": "85",
+            "fdb_entry_threshold_type": "percentage",
+            "fdb_entry_low_threshold": "70",
+            "fdb_entry_high_threshold": "85",
+            "snat_entry_threshold_type": "percentage",
+            "snat_entry_low_threshold": "70",
+            "snat_entry_high_threshold": "85",
+            "dnat_entry_threshold_type": "percentage",
+            "dnat_entry_low_threshold": "70",
+            "dnat_entry_high_threshold": "85",
+            "ipmc_entry_threshold_type": "percentage",
+            "ipmc_entry_low_threshold": "70",
+            "ipmc_entry_high_threshold": "85",
+            "mpls_inseg_threshold_type": "percentage",
+            "mpls_inseg_low_threshold": "70",
+            "mpls_inseg_high_threshold": "85",
+            "mpls_nexthop_threshold_type": "percentage",
+            "mpls_nexthop_low_threshold": "70",
+            "mpls_nexthop_high_threshold": "85"
+        }
+    },
+    "FLEX_COUNTER_TABLE": {
+        "ACL": {
+            "FLEX_COUNTER_STATUS": "enable",
+            "POLL_INTERVAL": "10000"
+        },
+        "PORT": {
+            "FLEX_COUNTER_STATUS": "enable"
+        },
+        "PORT_PHY_ATTR": {
+            "FLEX_COUNTER_STATUS": "enable"
+        },
+        "RIF": {
+            "FLEX_COUNTER_STATUS": "enable"
+        },
+        "QUEUE": {
+            "FLEX_COUNTER_STATUS": "enable"
+        },
+        "PFCWD": {
+            "FLEX_COUNTER_STATUS": "enable"
+        },
+        "PG_WATERMARK": {
+            "FLEX_COUNTER_STATUS": "enable"
+        },
+        "PG_DROP": {
+            "FLEX_COUNTER_STATUS": "enable"
+        },
+        "QUEUE_WATERMARK": {
+            "FLEX_COUNTER_STATUS": "enable"
+        },
+        "BUFFER_POOL_WATERMARK": {
+            "FLEX_COUNTER_STATUS": "enable"
+        },
+        "PORT_BUFFER_DROP": {
+            "FLEX_COUNTER_STATUS": "enable"
+        }
+    },
+    "BGP_DEVICE_GLOBAL": {
+        "STATE": {
+            "tsa_enabled": "false",
+            "wcmp_enabled": "false",
+            "idf_isolation_state": "unisolated"
+        }
+    },
+    "FEATURE": {
+        "bgp": {
+            "state": "enabled",
+            "delayed": "False",
+            "has_global_scope": false,
+            "has_per_asic_scope": "True",
+            "auto_restart": "enabled",
+            "support_syslog_rate_limit": "true",
+            "check_up_status": "false",
+            "high_mem_alert": "disabled"
+        },
+        "database": {
+            "state": "always_enabled",
+            "delayed": "False",
+            "has_global_scope": true,
+            "has_per_asic_scope": "True",
+            "auto_restart": "always_enabled",
+            "support_syslog_rate_limit": "true",
+            "high_mem_alert": "disabled"
+        },
+        "pmon": {
+            "state": "enabled",
+            "delayed": "True",
+            "has_global_scope": true,
+            "has_per_asic_scope": "False",
+            "auto_restart": "enabled",
+            "support_syslog_rate_limit": "true",
+            "check_up_status": "false",
+            "high_mem_alert": "disabled"
+        },
+        "swss": {
+            "state": "enabled",
+            "delayed": "False",
+            "has_global_scope": false,
+            "has_per_asic_scope": "True",
+            "auto_restart": "enabled",
+            "support_syslog_rate_limit": "true",
+            "check_up_status": "false",
+            "high_mem_alert": "disabled"
+        },
+        "syncd": {
+            "state": "enabled",
+            "delayed": "False",
+            "has_global_scope": false,
+            "has_per_asic_scope": "True",
+            "auto_restart": "enabled",
+            "support_syslog_rate_limit": "true",
+            "high_mem_alert": "disabled"
+        },
+        "radv": {
+            "state": "enabled",
+            "delayed": "False",
+            "has_global_scope": true,
+            "has_per_asic_scope": "False",
+            "auto_restart": "enabled",
+            "support_syslog_rate_limit": "true",
+            "high_mem_alert": "disabled"
+        },
+        "lldp": {
+            "state": "enabled",
+            "delayed": "True",
+            "has_global_scope": "True",
+            "has_per_asic_scope": "True",
+            "auto_restart": "enabled",
+            "support_syslog_rate_limit": "true",
+            "high_mem_alert": "disabled"
+        },
+        "snmp": {
+            "state": "enabled",
+            "delayed": "True",
+            "has_global_scope": true,
+            "has_per_asic_scope": "False",
+            "auto_restart": "enabled",
+            "support_syslog_rate_limit": "true",
+            "high_mem_alert": "disabled"
+        },
+        "teamd": {
+            "state": "enabled",
+            "delayed": "False",
+            "has_global_scope": false,
+            "has_per_asic_scope": "True",
+            "auto_restart": "enabled",
+            "support_syslog_rate_limit": "true",
+            "high_mem_alert": "disabled"
+        },
+        "dhcp_relay": {
+            "state": "enabled",
+            "auto_restart": "enabled",
+            "high_mem_alert": "disabled",
+            "set_owner": "local",
+            "delayed": "False",
+            "has_global_scope": "True",
+            "has_per_asic_scope": "False",
+            "support_syslog_rate_limit": "True",
+            "check_up_status": "False"
+        },
+        "mgmt-framework": {
+            "state": "enabled",
+            "delayed": "True",
+            "has_global_scope": true,
+            "has_per_asic_scope": "False",
+            "auto_restart": "enabled",
+            "support_syslog_rate_limit": "true",
+            "high_mem_alert": "disabled"
+        },
+        "mux": {
+            "state": "always_disabled",
+            "delayed": "False",
+            "has_global_scope": true,
+            "has_per_asic_scope": "False",
+            "auto_restart": "enabled",
+            "support_syslog_rate_limit": "true",
+            "high_mem_alert": "disabled"
+        },
+        "nat": {
+            "state": "disabled",
+            "delayed": "False",
+            "has_global_scope": true,
+            "has_per_asic_scope": "False",
+            "auto_restart": "enabled",
+            "support_syslog_rate_limit": "true",
+            "high_mem_alert": "disabled"
+        },
+        "p4rt": {
+            "state": "disabled",
+            "delayed": "False",
+            "has_global_scope": true,
+            "has_per_asic_scope": "False",
+            "auto_restart": "enabled",
+            "support_syslog_rate_limit": "true",
+            "high_mem_alert": "disabled"
+        },
+        "sflow": {
+            "state": "disabled",
+            "delayed": "True",
+            "has_global_scope": true,
+            "has_per_asic_scope": "False",
+            "auto_restart": "enabled",
+            "support_syslog_rate_limit": "true",
+            "high_mem_alert": "disabled"
+        },
+        "macsec": {
+            "state": "disabled",
+            "auto_restart": "enabled",
+            "high_mem_alert": "disabled",
+            "set_owner": "local",
+            "delayed": "False",
+            "has_global_scope": "False",
+            "has_per_asic_scope": "True",
+            "support_syslog_rate_limit": "True",
+            "check_up_status": "False"
+        },
+        "gnmi": {
+            "state": "enabled",
+            "delayed": "True",
+            "has_global_scope": true,
+            "has_per_asic_scope": "False",
+            "auto_restart": "enabled",
+            "support_syslog_rate_limit": "true",
+            "high_mem_alert": "disabled"
+        },
+        "otel": {
+            "state": "disabled",
+            "delayed": "False",
+            "has_global_scope": true,
+            "has_per_asic_scope": "False",
+            "auto_restart": "enabled",
+            "support_syslog_rate_limit": "true",
+            "high_mem_alert": "disabled"
+        },
+        "eventd": {
+            "state": "enabled",
+            "delayed": "False",
+            "has_global_scope": true,
+            "has_per_asic_scope": "False",
+            "auto_restart": "enabled",
+            "support_syslog_rate_limit": "true",
+            "high_mem_alert": "disabled"
+        }
+    }
+}
