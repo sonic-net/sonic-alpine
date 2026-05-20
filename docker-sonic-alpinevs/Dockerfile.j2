@@ -122,6 +122,8 @@ COPY ["port_breakout_config_db.json", "/etc/sonic/"]
 COPY ["database_config.json", "/etc/default/sonic-db/"]
 COPY ["hostname.j2", "/usr/share/sonic/templates/"]
 COPY ["init_cfg.json.j2", "/usr/share/sonic/templates/"]
+# Sree
+# COPY ["config_db.json", "/etc/sonic/"]
 COPY ["default_chassis_cfg.json", "/etc/default/sonic-db/"]
 COPY ["asic_table.json", "/etc/sonic/"]
 COPY ["zero_profiles.json", "/etc/sonic"]
@@ -146,6 +148,21 @@ FROM $BASE
 
 # Create /zmq_swss directory for ZMQ IPC sockets
 RUN mkdir -p /zmq_swss
+
+# Create the sock directory for p4rt's use
+RUN mkdir -p /sock
+
+RUN mkdir -p /var/run/sshd
+
+RUN sed -i 's/^#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config && \
+     echo "root:sonic" | chpasswd && \
+     useradd -m -s /bin/bash admin && \
+     echo "admin:google" | chpasswd
+
+#RUN sed -i 's/^#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config && \
+#    echo "root:sonic" | chpasswd
+
+COPY sshd.conf /etc/supervisor/conf.d/sshd.conf
 
 ENV PLATFORM=x86_64-kvm_x86_64-r0
 ENV HWSKU=alpinevs

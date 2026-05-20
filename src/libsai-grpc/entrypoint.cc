@@ -186,8 +186,9 @@ sai_status_t sai_api_initialize(
 
   LOG(WARNING) << "iniitializing";
 
+  // Sree - TODO
   auto chan =
-      grpc::CreateChannel("10.0.2.2:50000", grpc::InsecureChannelCredentials());
+      grpc::CreateChannel("127.0.0.1:50000", grpc::InsecureChannelCredentials());
 
   acl = std::make_unique<lemming::dataplane::sai::Acl::Stub>(chan);
   bfd = std::make_unique<lemming::dataplane::sai::Bfd::Stub>(chan);

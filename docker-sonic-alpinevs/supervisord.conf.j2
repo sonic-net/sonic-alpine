@@ -270,3 +270,23 @@ stdout_logfile=NONE
 stdout_syslog=true
 stderr_logfile=NONE
 stderr_syslog=true
+
+[program:p4rt]
+command=/usr/local/bin/p4rt --use_insecure_server_credentials --p4rt_grpc_port=9559 --use_genetlink=false --use_port_ids=true --save_forwarding_config_file=/etc/sonic/p4rt_forwarding_config.pb.txt --p4rt_unix_socket=/sock/p4rt.sock
+priority=23
+autostart=true
+autorestart=true
+stdout_logfile=NONE
+stdout_syslog=true
+stderr_logfile=NONE
+stderr_syslog=true
+
+[program:gnmi]
+command=/usr/sbin/telemetry -logtostderr --noTLS --port 9339 -v=2 --threshold 100 --idle_conn_duration 5 --client_auth cert --config_table_name GNMI_CLIENT_CERT
+priority=23
+autostart=true
+autorestart=true
+stdout_logfile=NONE
+stdout_syslog=true
+stderr_logfile=NONE
+stderr_syslog=true

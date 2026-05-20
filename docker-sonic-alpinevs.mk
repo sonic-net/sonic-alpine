@@ -12,7 +12,8 @@ $(DOCKER_SONIC_ALPINEVS)_DEPENDS += $(SYNCD_VS) \
                               $(LIBYANG_PY3) \
                               $(SONIC_UTILITIES_DATA) \
                               $(SONIC_HOST_SERVICES_DATA) \
-                              $(SYSMGR)
+                              $(SYSMGR) \
+                              $(SONIC_P4RT)
 
 $(DOCKER_SONIC_ALPINEVS)_PYTHON_WHEELS += $(SONIC_PY_COMMON_PY3) \
                                     $(SONIC_PLATFORM_COMMON_PY3) \

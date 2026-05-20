@@ -45,6 +45,7 @@ if [ -f /etc/sonic/config_db.json ]; then
     #mv /tmp/config_db.json /etc/sonic/config_db.json
     echo "Hello world"
 else
+# Sree - why this else ?
     if [ -f /usr/share/sonic/hwsku/buffers.json.j2 ]; then
         sonic-cfggen -k $HWSKU -p /usr/share/sonic/device/$PLATFORM/$PLATFORM_CONF -t /usr/share/sonic/hwsku/buffers.json.j2 > /tmp/buffers.json
         buffers_cmd="-j /tmp/buffers.json"
@@ -113,6 +114,8 @@ supervisorctl start vxlanmgrd
 supervisorctl start tunnelmgrd
 supervisorctl start fabricmgrd
 supervisorctl start rebootbackend
+supervisorctl start p4rt
+supervisorctl start telemetry
 
 VLAN=`sonic-cfggen -d -v 'VLAN.keys() | join(" ") if VLAN'`
 if [ "$VLAN" != "" ]; then
