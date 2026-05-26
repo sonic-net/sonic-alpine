@@ -113,6 +113,7 @@ RUN sed -ri 's/^# save ""$/save ""/g;                    \
 
 COPY ["50-default.conf", "/etc/rsyslog.d/"]
 COPY ["start.sh", "orchagent.sh", "files/update_chassisdb_config", "/usr/bin/"]
+COPY ["alpinevs-script.sh", "alpinevs-init.sh","alpinevs-config.sh","pkt-handler", "/usr/bin/"]
 COPY ["supervisord.conf.j2", "/usr/share/sonic/templates/"]
 COPY ["files/configdb-load.sh", "/usr/bin/"]
 COPY ["files/arp_update", "/usr/bin/"]
@@ -122,7 +123,6 @@ COPY ["port_breakout_config_db.json", "/etc/sonic/"]
 COPY ["database_config.json", "/etc/default/sonic-db/"]
 COPY ["hostname.j2", "/usr/share/sonic/templates/"]
 COPY ["init_cfg.json.j2", "/usr/share/sonic/templates/"]
-# Sree
 # COPY ["config_db.json", "/etc/sonic/"]
 COPY ["default_chassis_cfg.json", "/etc/default/sonic-db/"]
 COPY ["asic_table.json", "/etc/sonic/"]
@@ -155,9 +155,10 @@ RUN mkdir -p /sock
 RUN mkdir -p /var/run/sshd
 
 RUN sed -i 's/^#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config && \
-     echo "root:sonic" | chpasswd && \
-     useradd -m -s /bin/bash admin && \
-     echo "admin:google" | chpasswd
+    echo "root:google" | chpasswd && \
+    useradd -m -s /bin/bash admin && \
+    echo "admin:google" | chpasswd && \
+    echo "admin ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 #RUN sed -i 's/^#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config && \
 #    echo "root:sonic" | chpasswd

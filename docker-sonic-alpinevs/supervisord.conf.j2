@@ -283,9 +283,19 @@ stderr_syslog=true
 
 [program:gnmi]
 command=/usr/sbin/telemetry -logtostderr --noTLS --port 9339 -v=2 --threshold 100 --idle_conn_duration 5 --client_auth cert --config_table_name GNMI_CLIENT_CERT
-priority=23
+priority=24
 autostart=true
 autorestart=true
+stdout_logfile=NONE
+stdout_syslog=true
+stderr_logfile=NONE
+stderr_syslog=true
+
+[program:alpine]
+command=/usr/bin/alpinevs-script.sh
+priority=25
+autostart=true
+autorestart=false
 stdout_logfile=NONE
 stdout_syslog=true
 stderr_logfile=NONE

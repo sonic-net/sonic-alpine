@@ -34,7 +34,9 @@ import (
 )
 
 const (
-	addr = "10.0.2.2:50000"
+	// TODO
+	// addr = "10.0.2.2:50000"
+	addr = "127.0.0.1:50000"
 )
 
 var portFile = flag.String("port_file", "/etc/sonic/pktio_ports.json", "File at which to include hostif info, for debugging only")

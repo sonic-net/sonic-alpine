@@ -5,6 +5,8 @@ ln -sf /usr/share/sonic/device/$PLATFORM/$HWSKU /usr/share/sonic/hwsku
 
 SWITCH_TYPE=switch
 PLATFORM_CONF=platform.json
+export PLATFORM=${PLATFORM:-"x86_64-kvm_x86_64-r0"}
+PORT_CONF="port_config.ini"
 
 #pushd /usr/share/sonic/hwsku
 
@@ -41,13 +43,13 @@ if [[ -f /usr/share/sonic/virtual_chassis/default_config.json ]]; then
 fi
 
 if [ -f /etc/sonic/config_db.json ]; then
-    #sonic-cfggen -j /etc/sonic/init_cfg.json -j /etc/sonic/config_db.json --print-data > /tmp/config_db.json
-    #mv /tmp/config_db.json /etc/sonic/config_db.json
+    sonic-cfggen -j /etc/sonic/init_cfg.json -j /etc/sonic/config_db.json --print-data > /tmp/config_db.json
+    mv /tmp/config_db.json /etc/sonic/config_db.json
     echo "Hello world"
 else
 # Sree - why this else ?
     if [ -f /usr/share/sonic/hwsku/buffers.json.j2 ]; then
-        sonic-cfggen -k $HWSKU -p /usr/share/sonic/device/$PLATFORM/$PLATFORM_CONF -t /usr/share/sonic/hwsku/buffers.json.j2 > /tmp/buffers.json
+        sonic-cfggen -k $HWSKU -p /usr/share/sonic/device/$PLATFORM/$HWSKU/$PORT_CONF -t /usr/share/sonic/hwsku/buffers.json.j2 > /tmp/buffers.json
         buffers_cmd="-j /tmp/buffers.json"
     fi
     if [ -f /usr/share/sonic/hwsku/qos.json.j2 ]; then
@@ -55,7 +57,7 @@ else
         qos_cmd="-j /tmp/qos.json"
     fi
 
-    sonic-cfggen -p /usr/share/sonic/device/$PLATFORM/$PLATFORM_CONF -k $HWSKU --print-data > /tmp/ports.json
+    sonic-cfggen -p /usr/share/sonic/device/$PLATFORM/$HWSKU/$PORT_CONF -k $HWSKU --print-data > /tmp/ports.json
     sed -i "s/up/down/g" /tmp/ports.json
     sonic-cfggen -j /etc/sonic/init_cfg.json $buffers_cmd $qos_cmd -j /tmp/ports.json --print-data > /etc/sonic/config_db.json
 fi
@@ -116,6 +118,7 @@ supervisorctl start fabricmgrd
 supervisorctl start rebootbackend
 supervisorctl start p4rt
 supervisorctl start telemetry
+supervisorctl start alpine
 
 VLAN=`sonic-cfggen -d -v 'VLAN.keys() | join(" ") if VLAN'`
 if [ "$VLAN" != "" ]; then

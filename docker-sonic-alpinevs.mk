@@ -41,3 +41,22 @@ $(DOCKER_SONIC_ALPINEVS)_FILES += $(CONFIGDB_LOAD_SCRIPT) \
 $(DOCKER_SONIC_ALPINEVS)_LOAD_DOCKERS += $(DOCKER_SWSS_LAYER_BOOKWORM)
 SONIC_DOCKER_IMAGES += $(DOCKER_SONIC_ALPINEVS)
 SONIC_BOOKWORM_DOCKERS += $(DOCKER_SONIC_ALPINEVS)
+
+# Move the alpine scripts to the common location
+# Execute synchronously during Makefile parsing to bypass the SONiC wipe-out step
+
+# 1. Compile the Go binary natively
+$(shell $(MAKE) -C $(PLATFORM_PATH)/src/services/pkt-handler all >&2)
+
+# 2. Create the exact folders inside the Docker image's SOURCE directory
+# $(shell mkdir -p $(PLATFORM_PATH)/docker-sonic-alpinevs/pkt-handler)
+# $(shell mkdir -p $(PLATFORM_PATH)/docker-sonic-alpinevs/config)
+# $(shell mkdir -p $(PLATFORM_PATH)/docker-sonic-alpinevs/init)
+
+# 3. Copy the compiled binary over
+$(shell cp $(PLATFORM_PATH)/src/services/pkt-handler/pkt-handler $(PLATFORM_PATH)/docker-sonic-alpinevs/)
+
+# 4. Copy and DEREFERENCE soft links (-L) into the source directory
+$(shell cp -L $(PLATFORM_PATH)/src/services/config/alpinevs-config.sh $(PLATFORM_PATH)/docker-sonic-alpinevs/)
+$(shell cp -L $(PLATFORM_PATH)/src/services/init/alpinevs-init.sh $(PLATFORM_PATH)/docker-sonic-alpinevs/)
+$(shell cp -L $(PLATFORM_PATH)/src/services/alpinevs-script.sh $(PLATFORM_PATH)/docker-sonic-alpinevs/)

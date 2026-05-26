@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-export platform=vs
+export platform=alpinevs
 
 SWSS_VARS_FILE=/usr/share/sonic/templates/swss_vars.j2
 SWSS_VARS=$(sonic-cfggen -d -y /etc/sonic/sonic_version.yml -t $SWSS_VARS_FILE) || exit 1
