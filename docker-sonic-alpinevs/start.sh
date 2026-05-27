@@ -8,23 +8,6 @@ PLATFORM_CONF=platform.json
 export PLATFORM=${PLATFORM:-"x86_64-kvm_x86_64-r0"}
 PORT_CONF="port_config.ini"
 
-#pushd /usr/share/sonic/hwsku
-
-# filter available front panel ports in lanemap.ini
-#[ -f lanemap.ini.orig ] || cp lanemap.ini lanemap.ini.orig
-#for p in $(ip link show | grep -oE "eth[0-9]+" | grep -v eth0); do
-#    grep ^$p: lanemap.ini.orig
-#done > lanemap.ini
-
-# filter available sonic front panel ports in port_config.ini
-#[ -f port_config.ini.orig ] || cp port_config.ini port_config.ini.orig
-#grep ^# port_config.ini.orig > port_config.ini
-#for lanes in $(awk -F ':' '{print $2}' lanemap.ini); do
-#    grep -E "\s$lanes\s" port_config.ini.orig
-#done >> port_config.ini
-
-#popd
-
 [ -d /etc/sonic ] || mkdir -p /etc/sonic
 
 mkdir -p /var/run/redis/sonic-db
@@ -58,7 +41,7 @@ else
     fi
 
     sonic-cfggen -p /usr/share/sonic/device/$PLATFORM/$HWSKU/$PORT_CONF -k $HWSKU --print-data > /tmp/ports.json
-    sed -i "s/up/down/g" /tmp/ports.json
+    #sed -i "s/up/down/g" /tmp/ports.json
     sonic-cfggen -j /etc/sonic/init_cfg.json $buffers_cmd $qos_cmd -j /tmp/ports.json --print-data > /etc/sonic/config_db.json
 fi
 
