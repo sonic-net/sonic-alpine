@@ -6,14 +6,13 @@ ln -sf /usr/share/sonic/device/$PLATFORM/$HWSKU /usr/share/sonic/hwsku
 SWITCH_TYPE=switch
 PLATFORM_CONF=platform.json
 export PLATFORM=${PLATFORM:-"x86_64-kvm_x86_64-r0"}
-PORT_CONF="port_config.ini"
 
 [ -d /etc/sonic ] || mkdir -p /etc/sonic
 
 mkdir -p /var/run/redis/sonic-db
 cp /etc/default/sonic-db/database_config.json /var/run/redis/sonic-db/
 
-# Install Alpine SAI profile for Lemming
+# Install Alpine SAI profile for lucius
 mkdir -p /etc/sai.d/
 cp /usr/share/sonic/hwsku/sai.profile /etc/sai.d/sai.profile
 
@@ -25,24 +24,15 @@ if [[ -f /usr/share/sonic/virtual_chassis/default_config.json ]]; then
     mv /tmp/init_cfg.json /etc/sonic/init_cfg.json
 fi
 
+# Sree - new processing of config_db.json
 if [ -f /etc/sonic/config_db.json ]; then
+    # Merge basic system init properties into config_db.json
     sonic-cfggen -j /etc/sonic/init_cfg.json -j /etc/sonic/config_db.json --print-data > /tmp/config_db.json
     mv /tmp/config_db.json /etc/sonic/config_db.json
-    echo "Hello world"
+    echo "Using existing config_db.json"
 else
-# Sree - why this else ?
-    if [ -f /usr/share/sonic/hwsku/buffers.json.j2 ]; then
-        sonic-cfggen -k $HWSKU -p /usr/share/sonic/device/$PLATFORM/$HWSKU/$PORT_CONF -t /usr/share/sonic/hwsku/buffers.json.j2 > /tmp/buffers.json
-        buffers_cmd="-j /tmp/buffers.json"
-    fi
-    if [ -f /usr/share/sonic/hwsku/qos.json.j2 ]; then
-        sonic-cfggen -j /etc/sonic/init_cfg.json -t /usr/share/sonic/hwsku/qos.json.j2 > /tmp/qos.json
-        qos_cmd="-j /tmp/qos.json"
-    fi
-
-    sonic-cfggen -p /usr/share/sonic/device/$PLATFORM/$HWSKU/$PORT_CONF -k $HWSKU --print-data > /tmp/ports.json
-    #sed -i "s/up/down/g" /tmp/ports.json
-    sonic-cfggen -j /etc/sonic/init_cfg.json $buffers_cmd $qos_cmd -j /tmp/ports.json --print-data > /etc/sonic/config_db.json
+    echo "ERROR: /etc/sonic/config_db.json is missing! Cannot initialize system."
+    exit 1
 fi
 
 sonic-cfggen -t /usr/share/sonic/templates/copp_cfg.j2 > /etc/sonic/copp_cfg.json
