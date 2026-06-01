@@ -207,6 +207,8 @@ check_executable /usr/bin/alpinevs-script.sh
 check_executable /usr/bin/alpinevs-init.sh
 check_executable /usr/bin/alpinevs-config.sh
 check_executable /usr/bin/pkt-handler
+check_executable /usr/bin/p4rt.sh
+check_executable /usr/bin/telemetry.sh
 check_file /etc/sonic/config_db.json
 check_file /etc/sonic/copp_cfg.json
 check_file /etc/default/sonic-db/database_config.json
@@ -242,7 +244,7 @@ check_supervisor_running tunnelmgrd
 check_supervisor_running fabricmgrd
 check_supervisor_running rebootbackend
 check_supervisor_running p4rt
-check_supervisor_any_running telemetry gnmi telemetry
+check_supervisor_running telemetry
 check_supervisor_running alpine
 
 info "checking processes"

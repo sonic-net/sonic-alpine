@@ -13,7 +13,8 @@ $(DOCKER_SONIC_ALPINEVS)_DEPENDS += $(SYNCD_VS) \
                               $(SONIC_UTILITIES_DATA) \
                               $(SONIC_HOST_SERVICES_DATA) \
                               $(SYSMGR) \
-                              $(SONIC_P4RT)
+                              $(SONIC_P4RT) \
+                              $(SONIC_TELEMETRY)
 
 $(DOCKER_SONIC_ALPINEVS)_PYTHON_WHEELS += $(SONIC_PY_COMMON_PY3) \
                                     $(SONIC_PLATFORM_COMMON_PY3) \
@@ -38,9 +39,9 @@ $(DOCKER_SONIC_ALPINEVS)_FILES += $(CONFIGDB_LOAD_SCRIPT) \
                             $(UPDATE_CHASSISDB_CONFIG_SCRIPT) \
                             $(COPP_CONFIG_TEMPLATE)
 
-$(DOCKER_SONIC_ALPINEVS)_LOAD_DOCKERS += $(DOCKER_SWSS_LAYER_BOOKWORM)
+$(DOCKER_SONIC_ALPINEVS)_LOAD_DOCKERS += $(DOCKER_SWSS_LAYER_TRIXIE)
 SONIC_DOCKER_IMAGES += $(DOCKER_SONIC_ALPINEVS)
-SONIC_BOOKWORM_DOCKERS += $(DOCKER_SONIC_ALPINEVS)
+SONIC_TRIXIE_DOCKERS += $(DOCKER_SONIC_ALPINEVS)
 
 # Move the alpine scripts to the common location
 # Execute synchronously during Makefile parsing to bypass the SONiC wipe-out step

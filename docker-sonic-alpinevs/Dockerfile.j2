@@ -1,5 +1,5 @@
 {% from "dockers/dockerfile-macros.j2" import install_debian_packages, install_python_wheels, copy_files, rsync_from_builder_stage %}
-ARG BASE=docker-swss-layer-bookworm-{{DOCKER_USERNAME}}:{{DOCKER_USERTAG}}
+ARG BASE=docker-swss-layer-trixie-{{DOCKER_USERNAME}}:{{DOCKER_USERTAG}}
 
 FROM $BASE AS base
 
@@ -52,17 +52,15 @@ RUN apt-get install -y net-tools \
                        {%- endif %}
                        dbus \
                        redis-server \
-                       comerr-dev \
-                       libgssrpc4 \
-                       libkdb5-10 \
                        libprotobuf-c-dev \
                        protobuf-c-compiler \
                        libgoogle-glog-dev \
-                       libgrpc++1.51 \
-                       libgrpc29 \
-                       libprotobuf32 \
+                       libgrpc++1.51t64 \
+                       libgrpc29t64 \
+                       libprotobuf32t64 \
                        libgrpc++-dev \
                        libgrpc-dev \
+                       libzmq5 \
                        protobuf-compiler \
                        protobuf-compiler-grpc \
                        python3-protobuf \
@@ -81,8 +79,6 @@ RUN pip3 install meson-python meson ninja patchelf
 {{ copy_files("debs/", docker_sonic_alpinevs_debs.split(' '), "/debs/") }}
 {{ install_debian_packages(docker_sonic_alpinevs_debs.split(' ')) }}
 {%- endif %}
-
-RUN apt-get install -y libzmq3-dev
 
 {% if docker_sonic_alpinevs_pydebs.strip() -%}
 {{ copy_files("python-debs/", docker_sonic_alpinevs_pydebs.split(' '), "/debs/") }}
@@ -112,9 +108,12 @@ RUN sed -ri 's/^# save ""$/save ""/g;                    \
             ' /etc/redis/redis.conf
 
 COPY ["50-default.conf", "/etc/rsyslog.d/"]
-COPY ["start.sh", "orchagent.sh", "files/update_chassisdb_config", "/usr/bin/"]
-COPY ["alpinevs-script.sh", "alpinevs-healthcheck.sh", "bin/alpinevs-init.sh","bin/alpinevs-config.sh","bin/pkt-handler", "/usr/bin/"]
+COPY ["start.sh", "orchagent.sh", "telemetry.sh", "files/update_chassisdb_config", "/usr/bin/"]
+COPY ["alpinevs-script.sh", "alpinevs-healthcheck.sh", "p4rt.sh", "bin/alpinevs-init.sh","bin/alpinevs-config.sh","bin/pkt-handler", "/usr/bin/"]
+COPY ["start.sh", "orchagent.sh", "telemetry.sh", "files/update_chassisdb_config", "/usr/bin/"]
+COPY ["alpinevs-script.sh", "alpinevs-healthcheck.sh", "p4rt.sh", "bin/alpinevs-init.sh","bin/alpinevs-config.sh","bin/pkt-handler", "/usr/bin/"]
 COPY ["supervisord.conf.j2", "/usr/share/sonic/templates/"]
+COPY ["p4rt_vars.j2", "telemetry_vars.j2", "/usr/share/sonic/templates/"]
 COPY ["files/configdb-load.sh", "/usr/bin/"]
 COPY ["files/arp_update", "/usr/bin/"]
 COPY ["files/buffers_config.j2", "files/qos_config.j2", "files/arp_update_vars.j2", "files/copp_cfg.j2", "/usr/share/sonic/templates/"]

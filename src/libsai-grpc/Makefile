@@ -6,7 +6,7 @@ GRPC_OBJ = $(patsubst dataplane/proto/sai/%.proto, dataplane/proto/sai/%.grpc.pb
 SAI_SRC = $(wildcard dataplane/standalone/sai/*.cc)
 SAI_OBJ = $(patsubst dataplane/standalone/sai/%.cc, dataplane/standalone/sai/%.o, $(SAI_SRC))
 
-all: lucius-libsai-bookworm
+all: lucius-libsai-trixie
 
 $(PROTO_SRC) $(PROTO_GRPC_SRC) &:
 	protoc dataplane/proto/sai/*.proto --cpp_out=. --grpc_out=. --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` --experimental_allow_proto3_optional
@@ -33,13 +33,22 @@ $(ENTRYPOINT_OBJ): entrypoint.cc $(PROTO_SRC)
 libsai.so: $(PROTO_OBJ) $(GRPC_OBJ) $(SAI_OBJ) $(ENTRYPOINT_OBJ)
 	g++ -fPIC -o libsai.so -shared $(ENTRYPOINT_OBJ) dataplane/proto/sai/*.o dataplane/standalone/sai/*.o -lglog -lprotobuf -lgrpc++ -I . -I external/com_github_opencomputeproject_sai -I external/com_github_opencomputeproject_sai/inc -I external/com_github_opencomputeproject_sai/experimental
 
-lucius-libsai-bookworm:
+lucius-libsai-trixie:
+	if ! docker info >/dev/null 2>&1; then \
+		service docker start >/dev/null 2>&1 || systemctl start docker >/dev/null 2>&1 || true; \
+	fi
+	for i in 1 2 3 4 5 6 7 8 9 10; do \
+		docker info >/dev/null 2>&1 && break; \
+		sleep 3; \
+	done
+	docker info >/dev/null 2>&1
+
 	DOCKER_BUILDKIT=1 docker build . -f Dockerfile.saibuilder -t lemming-libsai:latest
 	docker create --name libsai-temp lemming-libsai:latest
 	docker cp libsai-temp:/build/libsai.so ./libsai.so
 	docker rm libsai-temp
 
-install: lucius-libsai-bookworm
+install: lucius-libsai-trixie
 	echo "Inside lucius_sai"
 	install -D ./libsai.so $(DESTDIR)/usr/lib/x86_64-linux-gnu/libsaivs.so.0.0.0
 	cd $(DESTDIR)/usr/lib/x86_64-linux-gnu && ln -s libsaivs.so.0.0.0 libsaivs.so.0
