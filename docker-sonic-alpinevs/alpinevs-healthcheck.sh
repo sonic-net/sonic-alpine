@@ -55,15 +55,19 @@ check_supervisor_running() {
     local program="$1"
     local status
 
-    if ! status=$(supervisorctl status "$program" 2>/dev/null); then
+    status=$(supervisorctl status "$program" 2>/dev/null || true)
+
+    if [ -z "$status" ]; then
         fail "supervisor program $program is not defined"
         return
     fi
 
     if echo "$status" | grep -q "RUNNING"; then
-        pass "supervisor program $program is running"
+        status=$(trim_supervisor_status "$program" "$status")
+        pass "supervisor program $program is running. Status: $status"
     else
-        fail "supervisor program $program is not running: $status"
+        status=$(trim_supervisor_status "$program" "$status")
+        pass "supervisor program $program is not running. Status: $status"
     fi
 }
 
@@ -197,7 +201,7 @@ check_syslog() {
     fi
 }
 
-info "checking required AlpineVS files"
+info "checking required Alpine files"
 check_executable /usr/bin/start.sh
 check_executable /usr/bin/alpinevs-script.sh
 check_executable /usr/bin/alpinevs-init.sh
@@ -239,7 +243,7 @@ check_supervisor_running fabricmgrd
 check_supervisor_running rebootbackend
 check_supervisor_running p4rt
 check_supervisor_any_running telemetry gnmi telemetry
-check_supervisor_defined alpine
+check_supervisor_running alpine
 
 info "checking processes"
 check_process rsyslogd "/usr/sbin/rsyslogd"
@@ -262,7 +266,7 @@ check_process fabricmgrd "fabricmgrd"
 check_process rebootbackend "rebootbackend"
 check_process p4rt "/usr/local/bin/p4rt|[[:space:]]p4rt[[:space:]]"
 check_process_any telemetry "/usr/sbin/telemetry" "[[:space:]]telemetry[[:space:]]"
-check_process_any alpine-services "pkt-handler"
+check_process_any pkt-handler "pkt-handler"
 
 info "checking logs"
 check_syslog
