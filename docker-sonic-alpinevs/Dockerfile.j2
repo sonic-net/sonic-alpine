@@ -113,7 +113,7 @@ RUN sed -ri 's/^# save ""$/save ""/g;                    \
 
 COPY ["50-default.conf", "/etc/rsyslog.d/"]
 COPY ["start.sh", "orchagent.sh", "files/update_chassisdb_config", "/usr/bin/"]
-COPY ["alpinevs-script.sh", "bin/alpinevs-init.sh","bin/alpinevs-config.sh","bin/pkt-handler", "/usr/bin/"]
+COPY ["alpinevs-script.sh", "alpinevs-healthcheck.sh", "bin/alpinevs-init.sh","bin/alpinevs-config.sh","bin/pkt-handler", "/usr/bin/"]
 COPY ["supervisord.conf.j2", "/usr/share/sonic/templates/"]
 COPY ["files/configdb-load.sh", "/usr/bin/"]
 COPY ["files/arp_update", "/usr/bin/"]
