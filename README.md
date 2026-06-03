@@ -1,3 +1,7 @@
+*master build*:
+
+[![Alpine](https://dev.azure.com/mssonic/build/_apis/build/status/3412?branchName=master&label=Alpine)](https://dev.azure.com/mssonic/build/_build/latest?definitionId=3412&branchName=master)
+
 ## Instructions
 
 ### Documentation
@@ -72,7 +76,10 @@ kne deploy deploy/kne/kind-bridge.yaml
 kind load docker-image alpine-vs:latest --name kne
 ```
 
-3. Download [Lemming](https://github.com/openconfig/lemming). Build the Lucius dataplane and load it
+3. Download [Lemming](https://github.com/openconfig/lemming)
+
+Install the [dependencies](https://github.com/openconfig/lemming/blob/main/README.md), build the Lucius dataplane and load it
+
 ```
 gh repo clone openconfig/lemming
 cd lemming
