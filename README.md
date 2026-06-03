@@ -1,6 +1,7 @@
 *master build*:
 
 [![Alpine](https://dev.azure.com/mssonic/build/_apis/build/status/3412?branchName=master&label=Alpine)](https://dev.azure.com/mssonic/build/_build/latest?definitionId=3412&branchName=master)
+[![Alpine](https://dev.azure.com/mssonic/build/_apis/build/status/3412?branchName=202605&label=Alpine)](https://dev.azure.com/mssonic/build/_build/latest?definitionId=3412&branchName=202605)
 
 ## Instructions
 
