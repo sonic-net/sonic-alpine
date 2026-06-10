@@ -57,7 +57,7 @@ else
 fi
 
 if [ -z "$GNMI" ]; then
-    PORT=9339
+    PORT=8080
 else
     PORT=$(extract_field "$GNMI" '.port')
     if ! [[ $PORT =~ ^[0-9]+$ ]]; then
