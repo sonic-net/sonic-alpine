@@ -184,6 +184,15 @@ check_json() {
     fi
 }
 
+check_interfaces_up() {
+    # Uses awk to check if the 8th column (Oper status) is 'up' for any Ethernet interface row
+    if show interface status 2>/dev/null | awk '/^[[:space:]]*Ethernet/ { if ($8 == "up") found=1 } END { exit !found }'; then
+        pass "at least one interface operational status is up"
+    else
+        fail "no interfaces are operationally up"
+    fi
+}
+
 check_syslog() {
     local path="/var/log/syslog"
     local pattern="(segmentation fault|abrt|segv|traceback|panic|fatal|critical|cannot initialize system|supervisor:.*ERROR)"
@@ -269,6 +278,9 @@ check_process rebootbackend "rebootbackend"
 check_process p4rt "/usr/local/bin/p4rt|[[:space:]]p4rt[[:space:]]"
 check_process_any telemetry "/usr/sbin/telemetry" "[[:space:]]telemetry[[:space:]]"
 check_process_any pkt-handler "pkt-handler"
+
+info "checking interface status"
+check_interfaces_up
 
 info "checking logs"
 check_syslog
