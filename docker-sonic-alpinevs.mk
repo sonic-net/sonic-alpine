@@ -8,13 +8,16 @@ $(DOCKER_SONIC_ALPINEVS)_DEPENDS += $(SYNCD_VS) \
                               $(PYTHON3_SWSSCOMMON) \
                               $(SONIC_DEVICE_DATA) \
                               $(LIBYANG) \
+                              $(LIBYANG3) \
                               $(LIBYANG_CPP) \
                               $(LIBYANG_PY3) \
                               $(SONIC_UTILITIES_DATA) \
                               $(SONIC_HOST_SERVICES_DATA) \
                               $(SYSMGR) \
                               $(SONIC_P4RT) \
-                              $(SONIC_TELEMETRY)
+                              $(SONIC_TELEMETRY) \
+                              $(SONIC_MGMT_FRAMEWORK) \
+                              $(SONIC_MGMT_COMMON)
 
 $(DOCKER_SONIC_ALPINEVS)_PYTHON_WHEELS += $(SONIC_PY_COMMON_PY3) \
                                     $(SONIC_PLATFORM_COMMON_PY3) \
@@ -26,8 +29,7 @@ $(DOCKER_SONIC_ALPINEVS)_PYTHON_WHEELS += $(SONIC_PY_COMMON_PY3) \
 ifeq ($(INSTALL_DEBUG_TOOLS), y)
 $(DOCKER_SONIC_ALPINEVS)_DEPENDS += $(LIBSWSSCOMMON_DBG) \
                               $(LIBSAIREDIS_DBG) \
-                              $(SYNCD_VS_DBG) \
-                              $(SYSMGR_DBG)
+                              $(SYNCD_VS_DBG)
 endif
 
 $(DOCKER_SONIC_ALPINEVS)_FILES += $(CONFIGDB_LOAD_SCRIPT) \
