@@ -85,6 +85,9 @@ RUN pip3 install meson-python meson ninja patchelf
 {{ install_debian_packages(docker_sonic_alpinevs_pydebs.split(' ')) }}
 {%- endif %}
 
+# Gracefully remove the Debian-managed cffi package if it exists, otherwise continue
+RUN apt-get purge -y python3-cffi python3-cffi-backend || true
+
 {% if docker_sonic_alpinevs_whls.strip() %}
 {{ copy_files("python-wheels/", docker_sonic_alpinevs_whls.split(' '), "/python-wheels/") }}
 {{ install_python_wheels(docker_sonic_alpinevs_whls.split(' ')) }}

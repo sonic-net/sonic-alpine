@@ -34,10 +34,13 @@ libsai.so: $(PROTO_OBJ) $(GRPC_OBJ) $(SAI_OBJ) $(ENTRYPOINT_OBJ)
 	g++ -fPIC -o libsai.so -shared $(ENTRYPOINT_OBJ) dataplane/proto/sai/*.o dataplane/standalone/sai/*.o -lglog -lprotobuf -lgrpc++ -I . -I external/com_github_opencomputeproject_sai -I external/com_github_opencomputeproject_sai/inc -I external/com_github_opencomputeproject_sai/experimental
 
 lucius-libsai-trixie:
-	for i in 1 2 3 4 5 6 7 8 9 10; do \
+# Wait for docker daemon to come up. Takes 30-45 seconds in trixie
+	@wait_for_docker=0; \
+	while [ $$wait_for_docker -lt 40 ]; do \
 		docker info >/dev/null 2>&1 && break; \
 		sleep 3; \
-	done
+		wait_for_docker=$$((wait_for_docker + 1)); \
+	done; \
 	docker info >/dev/null 2>&1
 
 	DOCKER_BUILDKIT=1 docker build . -f Dockerfile.saibuilder -t lemming-libsai:latest
