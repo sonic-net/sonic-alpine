@@ -8,6 +8,3 @@ if [ "$1" = "ps" ]; then
     echo "docker-fpm-frr:latest    bgp"
     exit 0
 fi
-
-echo "docker shim: unsupported command: $*" >&2
-exit 1
