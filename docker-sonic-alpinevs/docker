@@ -1,0 +1,13 @@
+#!/bin/sh
+
+# AlpineVS runs the CLI in-container, so there is no local Docker CLI.
+# Provide the minimum behavior needed by sonic-utilities routing-stack detection.
+# Now added to handle show commands which start with a 'sudo docker ps' call
+# Extend if required later
+if [ "$1" = "ps" ]; then
+    echo "docker-fpm-frr:latest    bgp"
+    exit 0
+fi
+
+echo "docker shim: unsupported command: $*" >&2
+exit 1

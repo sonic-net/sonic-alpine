@@ -5,6 +5,11 @@ set -u
 FAILURES=0
 WARNINGS=0
 
+if [[ $EUID -ne 0 ]];then
+    echo "ERROR: alpinevs-healthcheck.sh requires root privileges. Run with sudo."
+    exit 1
+fi
+
 info() {
     echo "INFO: $*"
 }

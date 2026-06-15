@@ -10,9 +10,9 @@ RUN [ -f /etc/rsyslog.conf ] && sed -ri "s/%syslogtag%/$docker_container_name#%s
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && apt-get install -y gnupg
-
-RUN apt-get install -y net-tools \
+RUN apt-get update && apt-get install -y \
+                       gnupg \
+                       net-tools \
                        iproute2 \
                        arping \
                        ndisc6 \
@@ -23,6 +23,7 @@ RUN apt-get install -y net-tools \
                        libjudydebian1 \
                        openssh-client \
                        openssh-server \
+                       sudo \
                        libc-ares2 \
                        bash-completion \
                        logrotate \
@@ -66,10 +67,9 @@ RUN apt-get install -y net-tools \
                        python3-protobuf \
                        python3-grpcio
 
-RUN pip3 install pyangbind==0.8.1
 RUN pip3 uninstall -y enum34
-
 RUN pip3 install \
+         pyangbind==0.8.1 \
          pyroute2==0.7.2 \
          netifaces==0.11.0
 
@@ -113,6 +113,7 @@ RUN sed -ri 's/^# save ""$/save ""/g;                    \
 COPY ["50-default.conf", "/etc/rsyslog.d/"]
 COPY ["start.sh", "orchagent.sh", "telemetry.sh", "files/update_chassisdb_config", "/usr/bin/"]
 COPY ["alpinevs-script.sh", "alpinevs-healthcheck.sh", "p4rt.sh", "bin/alpinevs-init.sh","bin/alpinevs-config.sh","bin/pkt-handler", "/usr/bin/"]
+COPY ["docker", "/usr/local/bin/docker"]
 COPY ["supervisord.conf.j2", "/usr/share/sonic/templates/"]
 COPY ["p4rt_vars.j2", "telemetry_vars.j2", "/usr/share/sonic/templates/"]
 COPY ["files/configdb-load.sh", "/usr/bin/"]
@@ -154,11 +155,11 @@ RUN mkdir -p /sock
 
 RUN mkdir -p /var/run/sshd
 
-RUN sed -i 's/^#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config && \
-    echo "root:google" | chpasswd && \
-    useradd -m -s /bin/bash admin && \
+RUN useradd -m -s /bin/bash admin && \
     echo "admin:google" | chpasswd && \
-    echo "admin ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+    echo "admin ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers && \
+    chown -R admin:admin /home/admin && \
+    sed -i 's/^#PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
 
 COPY sshd.conf /etc/supervisor/conf.d/sshd.conf
 
