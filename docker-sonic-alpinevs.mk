@@ -45,18 +45,24 @@ $(DOCKER_SONIC_ALPINEVS)_LOAD_DOCKERS += $(DOCKER_SWSS_LAYER_TRIXIE)
 SONIC_DOCKER_IMAGES += $(DOCKER_SONIC_ALPINEVS)
 SONIC_TRIXIE_DOCKERS += $(DOCKER_SONIC_ALPINEVS)
 
-# Move the alpine scripts to the common location
-# Execute synchronously during Makefile parsing to bypass the SONiC wipe-out step
+ALPINEVS_DOCKER_STAGING_DIR := $(PLATFORM_PATH)/docker-sonic-alpinevs/bin
+ALPINEVS_DOCKER_STAGE_FILES := \
+	$(ALPINEVS_DOCKER_STAGING_DIR)/pkt-handler \
+	$(ALPINEVS_DOCKER_STAGING_DIR)/alpinevs-config.sh \
+	$(ALPINEVS_DOCKER_STAGING_DIR)/alpinevs-init.sh
 
-# 1. Compile the Go binary natively
-$(shell $(MAKE) -C $(PLATFORM_PATH)/src/services/pkt-handler all >&2)
+$(ALPINEVS_DOCKER_STAGING_DIR):
+	mkdir -p $@
 
-# 2. Create the target directory
-$(shell mkdir -p $(PLATFORM_PATH)/docker-sonic-alpinevs/bin)
+$(ALPINEVS_DOCKER_STAGING_DIR)/pkt-handler: | $(ALPINEVS_DOCKER_STAGING_DIR)
+	$(MAKE) -C $(PLATFORM_PATH)/src/services/pkt-handler all
+	cp $(PLATFORM_PATH)/src/services/pkt-handler/pkt-handler $@
 
-# 3. Copy the compiled binary over
-$(shell cp $(PLATFORM_PATH)/src/services/pkt-handler/pkt-handler $(PLATFORM_PATH)/docker-sonic-alpinevs/bin/)
+$(ALPINEVS_DOCKER_STAGING_DIR)/alpinevs-config.sh: | $(ALPINEVS_DOCKER_STAGING_DIR)
+	cp -L $(PLATFORM_PATH)/src/services/config/alpinevs-config.sh $@
 
-# 4. Copy and DEREFERENCE soft links (-L) into the source directory
-$(shell cp -L $(PLATFORM_PATH)/src/services/config/alpinevs-config.sh $(PLATFORM_PATH)/docker-sonic-alpinevs/bin/)
-$(shell cp -L $(PLATFORM_PATH)/src/services/init/alpinevs-init.sh $(PLATFORM_PATH)/docker-sonic-alpinevs/bin/)
+$(ALPINEVS_DOCKER_STAGING_DIR)/alpinevs-init.sh: | $(ALPINEVS_DOCKER_STAGING_DIR)
+	cp -L $(PLATFORM_PATH)/src/services/init/alpinevs-init.sh $@
+
+$(addprefix $(TARGET_PATH)/,$(DOCKER_SONIC_ALPINEVS)): $(ALPINEVS_DOCKER_STAGE_FILES)
+

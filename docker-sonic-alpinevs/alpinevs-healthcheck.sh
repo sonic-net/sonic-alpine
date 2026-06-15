@@ -67,7 +67,7 @@ check_supervisor_running() {
         pass "supervisor program $program is running. Status: $status"
     else
         status=$(trim_supervisor_status "$program" "$status")
-        pass "supervisor program $program is not running. Status: $status"
+        fail "supervisor program $program is not running. Status: $status"
     fi
 }
 

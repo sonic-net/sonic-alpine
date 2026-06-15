@@ -271,18 +271,18 @@ stdout_syslog=true
 stderr_logfile=NONE
 stderr_syslog=true
 
-[program:p4rt]
-command=/usr/bin/p4rt.sh
+[program:telemetry]
+command=/usr/bin/telemetry.sh
 priority=23
-autostart=true
+autostart=false
 autorestart=true
 stdout_logfile=NONE
 stdout_syslog=true
 stderr_logfile=NONE
 stderr_syslog=true
 
-[program:telemetry]
-command=/usr/bin/telemetry.sh
+[program:p4rt]
+command=/usr/bin/p4rt.sh
 priority=24
 autostart=false
 autorestart=true
