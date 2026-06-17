@@ -1,0 +1,17 @@
+{
+    "DEVICE_METADATA": {
+        "localhost": {
+            "mac": "{{ system_mac }}",
+            "switch_type": "{{ switch_type }}",
+            "buffer_model": "traditional"
+        }
+    },
+{%- set features = ({"swss": "enabled", "nat": "enabled", "database": "enabled", "lldp": "enabled", "p4rt": "enabled", "telemetry": "enabled"}) %}
+    "FEATURE": {
+{%- for feature, state in features.items() %}
+        "{{ feature }}": {
+            "state": "{{ state }}"
+        }{% if not loop.last %},{% endif %}
+{%- endfor %}
+    }
+}
