@@ -166,5 +166,6 @@ COPY sshd.conf /etc/supervisor/conf.d/sshd.conf
 
 ENV PLATFORM=x86_64-kvm_x86_64-r0
 ENV HWSKU=alpinevs
+ENV SOC_TARGET_SERVER=127.0.0.1:50000
 
 ENTRYPOINT ["/usr/local/bin/supervisord"]

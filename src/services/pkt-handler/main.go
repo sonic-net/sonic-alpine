@@ -33,12 +33,7 @@ import (
 	pktiopb "github.com/openconfig/lemming/dataplane/proto/packetio"
 )
 
-const (
-	// TODO
-	// addr = "10.0.2.2:50000"
-	addr = "127.0.0.1:50000"
-)
-
+var addr = getTargetAddr()
 var portFile = flag.String("port_file", "/etc/sonic/pktio_ports.json", "File at which to include hostif info, for debugging only")
 
 func main() {
@@ -98,3 +93,12 @@ func main() {
 func init() {
 	flag.Parse()
 }
+
+func getTargetAddr() string {
+	addr := os.Getenv("SOC_TARGET_SERVER")
+	if addr == "" {
+		return "10.0.2.2:50000" // Default
+	}
+	return addr
+}
+
