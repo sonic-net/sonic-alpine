@@ -1,0 +1,68 @@
+#!/bin/sh
+
+# Report container uptime based on PID 1 start time instead of host kernel uptime.
+
+set -eu
+
+real_uptime="/usr/bin/uptime"
+
+ticks_per_second="$(getconf CLK_TCK)"
+boot_uptime_seconds="$(cut -d. -f1 /proc/uptime)"
+pid1_start_ticks="$(awk '{print $22}' /proc/1/stat)"
+pid1_elapsed_seconds=$((boot_uptime_seconds - (pid1_start_ticks / ticks_per_second)))
+
+if [ "$pid1_elapsed_seconds" -lt 0 ]; then
+    pid1_elapsed_seconds=0
+fi
+
+format_pretty() {
+    total="$1"
+    days=$((total / 86400))
+    hours=$(((total % 86400) / 3600))
+    mins=$(((total % 3600) / 60))
+
+    if [ "$days" -gt 0 ]; then
+        if [ "$hours" -gt 0 ]; then
+            echo "up ${days} day$( [ "$days" -ne 1 ] && echo s ), ${hours} hour$( [ "$hours" -ne 1 ] && echo s )"
+        else
+            echo "up ${days} day$( [ "$days" -ne 1 ] && echo s )"
+        fi
+    elif [ "$hours" -gt 0 ]; then
+        if [ "$mins" -gt 0 ]; then
+            echo "up ${hours} hour$( [ "$hours" -ne 1 ] && echo s ), ${mins} minute$( [ "$mins" -ne 1 ] && echo s )"
+        else
+            echo "up ${hours} hour$( [ "$hours" -ne 1 ] && echo s )"
+        fi
+    else
+        echo "up ${mins} minute$( [ "$mins" -ne 1 ] && echo s )"
+    fi
+}
+
+format_clock_uptime() {
+    total="$1"
+    days=$((total / 86400))
+    hours=$(((total % 86400) / 3600))
+    mins=$(((total % 3600) / 60))
+
+    if [ "$days" -gt 0 ]; then
+        printf "%d day%s, %2d:%02d" "$days" "$( [ "$days" -ne 1 ] && echo s )" "$hours" "$mins"
+    elif [ "$hours" -gt 0 ]; then
+        printf "%2d:%02d" "$hours" "$mins"
+    else
+        printf "%d min" "$mins"
+    fi
+}
+
+case "${1:-}" in
+    "")
+        now="$(date '+%H:%M:%S')"
+        loadavg="$(cut -d' ' -f1-3 /proc/loadavg | sed 's/ /, /g')"
+        echo " ${now} up $(format_clock_uptime "$pid1_elapsed_seconds"),  load average: ${loadavg}"
+        ;;
+    -p)
+        format_pretty "$pid1_elapsed_seconds"
+        ;;
+    *)
+        exec "$real_uptime" "$@"
+        ;;
+esac
