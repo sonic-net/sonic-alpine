@@ -1,0 +1,53 @@
+{
+    "DEVICE_METADATA": {
+        "localhost": {
+            "mac": "{{ system_mac }}",
+            "switch_type": "{{ switch_type }}",
+            "buffer_model": "traditional"
+        }
+    },
+{%- set features = ({"swss": "enabled", "nat": "enabled", "database": "enabled", "lldp": "enabled", "p4rt": "enabled", "telemetry": "enabled"}) %}
+    "FEATURE": {
+{%- for feature, state in features.items() %}
+        "{{ feature }}": {
+            "state": "{{ state }}"
+        }{% if not loop.last %},{% endif %}
+{%- endfor %}
+    },
+    "FLEX_COUNTER_TABLE": {
+        "ACL": {
+            "FLEX_COUNTER_STATUS": "enable",
+            "POLL_INTERVAL": "10000"
+        },
+        "PORT": {
+            "FLEX_COUNTER_STATUS": "enable"
+        },
+        "PORT_PHY_ATTR": {
+            "FLEX_COUNTER_STATUS": "enable"
+        },
+        "RIF": {
+            "FLEX_COUNTER_STATUS": "enable"
+        },
+        "QUEUE": {
+            "FLEX_COUNTER_STATUS": "enable"
+        },
+        "PFCWD": {
+            "FLEX_COUNTER_STATUS": "enable"
+        },
+        "PG_WATERMARK": {
+            "FLEX_COUNTER_STATUS": "enable"
+        },
+        "PG_DROP": {
+            "FLEX_COUNTER_STATUS": "enable"
+        },
+        "QUEUE_WATERMARK": {
+            "FLEX_COUNTER_STATUS": "enable"
+        },
+        "BUFFER_POOL_WATERMARK": {
+            "FLEX_COUNTER_STATUS": "enable"
+        },
+        "PORT_BUFFER_DROP": {
+            "FLEX_COUNTER_STATUS": "enable"
+        }
+    }
+}
