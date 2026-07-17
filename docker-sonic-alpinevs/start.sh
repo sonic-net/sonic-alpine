@@ -37,7 +37,6 @@ else
 fi
 
 sonic-cfggen -t /usr/share/sonic/templates/copp_cfg_alpinevs.j2 > /etc/sonic/copp_cfg.json
-sonic-cfggen -t /usr/share/sonic/templates/copp_cfg.j2 > /etc/sonic/copp_cfg.json
 
 mkdir -p /etc/swss/config.d/
 

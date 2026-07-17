@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y \
                        net-tools \
                        iproute2 \
                        binutils \
+                       kmod \
                        arping \
                        ndisc6 \
                        ethtool \
@@ -122,7 +123,6 @@ COPY ["files/configdb-load.sh", "/usr/bin/"]
 COPY ["files/arp_update", "/usr/bin/"]
 COPY ["files/buffers_config.j2", "files/qos_config.j2", "files/arp_update_vars.j2", "/usr/share/sonic/templates/"]
 COPY ["copp_cfg_alpinevs.j2", "/usr/share/sonic/templates/"]
-COPY ["copp_cfg.j2", "/usr/share/sonic/templates/"]
 COPY ["files/sonic_version.yml", "/etc/sonic/"]
 COPY ["port_breakout_config_db.json", "/etc/sonic/"]
 COPY ["database_config.json", "/etc/default/sonic-db/"]

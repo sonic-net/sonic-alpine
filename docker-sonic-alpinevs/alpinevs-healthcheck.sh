@@ -198,6 +198,20 @@ check_interfaces_up() {
     fi
 }
 
+copp_uses_genetlink() {
+    grep -q '"genetlink_name"' /etc/sonic/copp_cfg.json 2>/dev/null
+}
+
+check_genetlink_module_warning() {
+    local module="$1"
+
+    if [ -d "/sys/module/$module" ]; then
+        pass "kernel module $module is visible from the container"
+    else
+        warn "kernel module $module is not visible from the container; CoPP GENETLINK hostif creation may fail"
+    fi
+}
+
 check_syslog() {
     local path="/var/log/syslog"
     local pattern="(segmentation fault|abrt|segv|traceback|panic|fatal|critical|cannot initialize system|supervisor:.*ERROR)"
@@ -283,6 +297,11 @@ check_process rebootbackend "rebootbackend"
 check_process p4rt "/usr/local/bin/p4rt|[[:space:]]p4rt[[:space:]]"
 check_process_any telemetry "/usr/sbin/telemetry" "[[:space:]]telemetry[[:space:]]"
 check_process_any pkt-handler "pkt-handler"
+
+if copp_uses_genetlink; then
+    info "checking optional generic netlink prerequisite for CoPP GENETLINK hostifs"
+    check_genetlink_module_warning genl_packet
+fi
 
 info "checking interface status"
 check_interfaces_up
