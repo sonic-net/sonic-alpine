@@ -273,7 +273,8 @@ check_supervisor_running fabricmgrd
 check_supervisor_running rebootbackend
 check_supervisor_running p4rt
 check_supervisor_running telemetry
-check_supervisor_running alpine
+check_supervisor_running_or_exited alpine
+check_supervisor_running pkt-handler
 
 info "checking processes"
 check_process rsyslogd "/usr/sbin/rsyslogd"
