@@ -5,14 +5,17 @@ logfile_backups=2
 nodaemon=true
 
 [program:start.sh]
-command=/usr/bin/start.sh > /tmp/boot_debug.log 2>&1
+command=/usr/bin/start.sh
 priority=1
 autostart=true
 autorestart=false
-stdout_logfile=NONE
-stdout_syslog=true
-stderr_logfile=NONE
-stderr_syslog=true
+startsecs=0
+startretries=0
+stdout_logfile=/tmp/boot_debug.log
+stdout_logfile_maxbytes=5MB
+stdout_logfile_backups=1
+redirect_stderr=true
+stdout_syslog=false
 
 [program:rsyslogd]
 command=/usr/sbin/rsyslogd -n
@@ -296,7 +299,6 @@ command=/usr/bin/alpinevs-script.sh
 priority=25
 autostart=false
 autorestart=false
-startsecs=0
 stdout_logfile=NONE
 stdout_syslog=true
 stderr_logfile=NONE

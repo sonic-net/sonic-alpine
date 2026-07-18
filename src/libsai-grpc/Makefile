@@ -41,7 +41,7 @@ lucius-libsai-trixie:
 		sleep 3; \
 		wait_for_docker=$$((wait_for_docker + 1)); \
 	done; \
-	echo "Wait  of $$((wait_for_docker * 3)) seconds for docker"; \
+	echo "Wait of $$((wait_for_docker * 3)) seconds for docker"; \
 
 	DOCKER_BUILDKIT=1 docker build . -f Dockerfile.saibuilder -t lemming-libsai:latest
 	docker create --name libsai-temp lemming-libsai:latest

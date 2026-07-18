@@ -96,7 +96,6 @@ func init() {
 
 func getTargetAddr() string {
 	addr := os.Getenv("SOC_TARGET_SERVER")
-	log.Errorf("(Sree - take 2) pkt-handler address is %v", addr);
 	if addr == "" {
 		return "10.0.2.2:50000" // Default
 	}

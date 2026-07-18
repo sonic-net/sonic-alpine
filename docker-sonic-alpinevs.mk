@@ -17,8 +17,7 @@ $(DOCKER_SONIC_ALPINEVS)_DEPENDS += $(SYNCD_VS) \
                               $(SONIC_P4RT) \
                               $(SONIC_TELEMETRY) \
                               $(SONIC_MGMT_FRAMEWORK) \
-                              $(SONIC_MGMT_COMMON)
-                              $(SONIC_P4RT)
+                              $(SONIC_MGMT_COMMON) 
 
 $(DOCKER_SONIC_ALPINEVS)_PYTHON_WHEELS += $(SONIC_PY_COMMON_PY3) \
                                     $(SONIC_PLATFORM_COMMON_PY3) \
