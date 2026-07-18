@@ -17,9 +17,6 @@ nodes: {
                 }
             }
         }
-        config_path: "/etc/sonic"
-        config_file: "config_db.json"
-        file: "config_db_alpine_vs.json"
     }
     services:{
         key: 22
@@ -63,9 +60,6 @@ nodes: {
                 }
             }
         }
-        config_path: "/etc/sonic"
-        config_file: "config_db.json"
-        file: "config_db_alpine_vs.json"
     }
     services:{
         key: 22
