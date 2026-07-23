@@ -48,7 +48,7 @@ SONIC_TRIXIE_DOCKERS += $(DOCKER_SONIC_ALPINEVS)
 ALPINEVS_DOCKER_STAGING_DIR := $(PLATFORM_PATH)/docker-sonic-alpinevs/bin
 ALPINEVS_PKT_HANDLER_SRC_DIR := $(PLATFORM_PATH)/src/services/pkt-handler
 ALPINEVS_CONFIG_SRC := $(PLATFORM_PATH)/src/services/config/alpinevs-config.sh
-ALPINEVS_INIT_SRC := $(PLATFORM_PATH)/src/services/init/alpinevs-init.sh
+ALPINEVS_INIT_SRC := $(PLATFORM_PATH)/docker-sonic-alpinevs/alpinevs-init.sh
 
 ALPINEVS_DOCKER_STAGE_FILES := \
 	$(ALPINEVS_DOCKER_STAGING_DIR)/pkt-handler \

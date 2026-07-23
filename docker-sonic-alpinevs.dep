@@ -9,7 +9,6 @@ ALPINEVS_DOCKER_DEP_FILES := $(addprefix $(PLATFORM_PATH)/,\
 ALPINEVS_SERVICE_DEP_FILES := $(addprefix $(PLATFORM_PATH)/,\
 	$(shell git -C $(PLATFORM_PATH) ls-files \
 		src/services/pkt-handler \
-		src/services/init/alpinevs-init.sh \
 		src/services/config/alpinevs-config.sh))
 
 DEP_FILES += $(ALPINEVS_DOCKER_DEP_FILES)
