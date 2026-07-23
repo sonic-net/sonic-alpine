@@ -1,10 +1,6 @@
 #!/bin/bash -e
 # Script to setup AlpineVS switch on init
 
-# In docker-sonic-alpinevs, configfolder is not available. Use the HWSKU
-# supplied by the container environment. A VM-provided config can override it.
-platform="${HWSKU:-}"
-
 # Copy the config_db.json
 mkdir -p /mnt/config
 mount -t 9p configfolder /mnt/config && {
@@ -36,8 +32,7 @@ if [ -f /usr/bin/lucius-pkthandler_latest.deb ]; then
 fi
 
 # Google Alpine platform custom daemon control.
-if [ -n "${platform}" ] && \
-   [ -f "/usr/share/sonic/device/x86_64-kvm_x86_64-r0/${platform}/pmon_daemon_control.json" ]; then
+if [ -f "/usr/share/sonic/device/x86_64-kvm_x86_64-r0/${platform}/pmon_daemon_control.json" ]; then
     rm -f /usr/share/sonic/device/x86_64-kvm_x86_64-r0/pmon_daemon_control.json
     cp "/usr/share/sonic/device/x86_64-kvm_x86_64-r0/${platform}/pmon_daemon_control.json" "/usr/share/sonic/device/x86_64-kvm_x86_64-r0/pmon_daemon_control.json"
 fi
