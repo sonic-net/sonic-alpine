@@ -20,6 +20,7 @@
 #include <grpcpp/security/credentials.h>
 
 #include <fstream>
+#include <cstdlib>
 
 #include "dataplane/proto/sai/acl.grpc.pb.h"
 #include "dataplane/proto/sai/bfd.grpc.pb.h"
@@ -184,10 +185,12 @@ sai_status_t sai_api_initialize(
   google::InitGoogleLogging("lucius");
   google::InstallFailureSignalHandler();
 
-  LOG(WARNING) << "iniitializing";
+  const char* target_env = std::getenv("SOC_TARGET_SERVER");
+  std::string target = (target_env != nullptr) ? target_env : "10.0.2.2:50000";
 
-  auto chan =
-      grpc::CreateChannel("10.0.2.2:50000", grpc::InsecureChannelCredentials());
+  LOG(WARNING) << "initializing";
+
+  auto chan = grpc::CreateChannel(target, grpc::InsecureChannelCredentials());
 
   acl = std::make_unique<lemming::dataplane::sai::Acl::Stub>(chan);
   bfd = std::make_unique<lemming::dataplane::sai::Bfd::Stub>(chan);
