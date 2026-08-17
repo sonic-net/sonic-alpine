@@ -14,6 +14,8 @@ RUN apt-get update && apt-get install -y \
                        gnupg \
                        net-tools \
                        iproute2 \
+                       binutils \
+                       kmod \
                        arping \
                        ndisc6 \
                        ethtool \
@@ -158,7 +160,7 @@ RUN mkdir -p /sock
 RUN mkdir -p /var/run/sshd
 
 RUN useradd -m -s /bin/bash admin && \
-    echo "admin:google" | chpasswd && \
+    echo "admin:YourPaSsWoRd" | chpasswd && \
     echo "admin ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers && \
     chown -R admin:admin /home/admin && \
     sed -i 's/^#PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config

@@ -1,2 +1,3 @@
 #!/bin/sh
+# Dummy file created to suppress error messages during show commands
 exit 0
