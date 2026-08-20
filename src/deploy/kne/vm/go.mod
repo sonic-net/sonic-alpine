@@ -1,5 +1,5 @@
 module example.com/foo
 
-go 1.21
+go 1.25.9
 
 require golang.org/x/exp v0.0.0-20240119083558-1b970713d09a
