@@ -681,7 +681,14 @@
     "GNMI": {
         "gnmi": {
             "port": "9339",
+            "client_auth": "false",
+            "user_auth": "password",
             "save_on_set": "true"
+        },
+        "certs": {
+            "ca_crt": "",
+            "server_crt": "",
+            "server_key": ""
         }
     },
     "VERSIONS": {
