@@ -279,10 +279,10 @@ command=/usr/bin/telemetry.sh
 priority=23
 autostart=false
 autorestart=true
-stdout_logfile=NONE
-stdout_syslog=true
-stderr_logfile=NONE
-stderr_syslog=true
+stdout_logfile=/var/log/gnmi.log
+stderr_logfile=/var/log/gnmi.log
+stdout_logfile_maxbytes=0
+stderr_logfile_maxbytes=0
 
 [program:p4rt]
 command=/usr/bin/p4rt.sh
