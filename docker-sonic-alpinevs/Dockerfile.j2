@@ -159,10 +159,16 @@ RUN mkdir -p /sock
 
 RUN mkdir -p /var/run/sshd
 
-RUN useradd -m -s /bin/bash admin && \
-    echo "admin:YourPaSsWoRd" | chpasswd && \
-    echo "admin ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers && \
-    chown -R admin:admin /home/admin && \
+COPY ["bin/sonic-admin.username", "/tmp/sonic-admin.username"]
+COPY ["bin/sonic-admin.password.hash", "/tmp/sonic-admin.password.hash"]
+
+RUN sonic_admin="$(cat /tmp/sonic-admin.username)" && \
+    [ -n "$sonic_admin" ] || { echo "Error: User name is empty" >&2; exit 1; } && \
+    useradd -m -s /bin/bash "$sonic_admin" && \
+    usermod -p "$(cat /tmp/sonic-admin.password.hash)" "$sonic_admin" && \
+    echo "$sonic_admin ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers && \
+    chown -R "$sonic_admin:$sonic_admin" "/home/$sonic_admin" && \
+    rm -f /tmp/sonic-admin.username /tmp/sonic-admin.password.hash && \
     sed -i 's/^#PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
 
 COPY sshd.conf /etc/supervisor/conf.d/sshd.conf

@@ -49,14 +49,33 @@ ALPINEVS_DOCKER_STAGING_DIR := $(PLATFORM_PATH)/docker-sonic-alpinevs/bin
 ALPINEVS_PKT_HANDLER_SRC_DIR := $(PLATFORM_PATH)/src/services/pkt-handler
 ALPINEVS_CONFIG_SRC := $(PLATFORM_PATH)/src/services/config/alpinevs-config.sh
 ALPINEVS_INIT_SRC := $(PLATFORM_PATH)/docker-sonic-alpinevs/alpinevs-init.sh
+ALPINEVS_ADMIN_USERNAME_FILE := $(ALPINEVS_DOCKER_STAGING_DIR)/sonic-admin.username
+ALPINEVS_ADMIN_PASSWORD_HASH := $(ALPINEVS_DOCKER_STAGING_DIR)/sonic-admin.password.hash
 
 ALPINEVS_DOCKER_STAGE_FILES := \
 	$(ALPINEVS_DOCKER_STAGING_DIR)/pkt-handler \
 	$(ALPINEVS_DOCKER_STAGING_DIR)/alpinevs-config.sh \
-	$(ALPINEVS_DOCKER_STAGING_DIR)/alpinevs-init.sh
+	$(ALPINEVS_DOCKER_STAGING_DIR)/alpinevs-init.sh \
+	$(ALPINEVS_ADMIN_USERNAME_FILE) \
+	$(ALPINEVS_ADMIN_PASSWORD_HASH)
 
 $(ALPINEVS_DOCKER_STAGING_DIR):
 	mkdir -p $@
+
+.PHONY: $(ALPINEVS_ADMIN_USERNAME_FILE) $(ALPINEVS_ADMIN_PASSWORD_HASH)
+
+$(ALPINEVS_ADMIN_USERNAME_FILE): export ALPINEVS_ADMIN_USERNAME := $(DEFAULT_USERNAME)
+$(ALPINEVS_ADMIN_USERNAME_FILE): | $(ALPINEVS_DOCKER_STAGING_DIR)
+	@umask 077; printf '%s\n' "$$ALPINEVS_ADMIN_USERNAME" > "$@"
+
+$(ALPINEVS_ADMIN_PASSWORD_HASH): export ALPINEVS_ADMIN_PASSWORD := $(DEFAULT_PASSWORD)
+$(ALPINEVS_ADMIN_PASSWORD_HASH): | $(ALPINEVS_DOCKER_STAGING_DIR)
+	@umask 077; \
+	if [ -n "$$ALPINEVS_ADMIN_PASSWORD" ]; then \
+		printf '%s' "$$ALPINEVS_ADMIN_PASSWORD" | openssl passwd -6 -stdin > "$@"; \
+	else \
+		printf '%s\n' '!' > "$@"; \
+	fi
 
 # Always rebuild it before staging the Docker build-context copy
 .PHONY: $(ALPINEVS_DOCKER_STAGING_DIR)/pkt-handler
