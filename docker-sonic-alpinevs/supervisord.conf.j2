@@ -22,9 +22,9 @@ command=/usr/sbin/rsyslogd -n
 priority=2
 autostart=false
 autorestart=false
-stdout_logfile=NONE
+stdout_logfile=/var/log/rsyslogd.log
 stdout_syslog=true
-stderr_logfile=NONE
+stderr_logfile=/var/log/rsyslog.err
 stderr_syslog=true
 
 [program:redis-server]
@@ -296,7 +296,7 @@ stderr_syslog=true
 
 [program:alpine]
 command=/usr/bin/alpinevs-script.sh
-priority=25
+priority=30
 autostart=true
 autorestart=false
 startsecs=0

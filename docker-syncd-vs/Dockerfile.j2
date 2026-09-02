@@ -7,11 +7,18 @@ RUN [ -f /etc/rsyslog.conf ] && sed -ri "s/%syslogtag%/$docker_container_name#%s
 ## Make apt-get non-interactive
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update
-
-RUN apt-get install -f -y libcap2-bin
-RUN apt-get install -f -y libgoogle-glog-dev
-RUN apt-get install -f -y libgrpc++1.51 libgrpc29 libprotobuf32 libprotoc-dev protobuf-compiler python3-protobuf libgrpc++-dev libgrpc-dev protobuf-compiler-grpc
+RUN apt-get update && apt-get install -f -y \
+    libcap2-bin \
+    libgoogle-glog-dev \
+    libabsl-dev \
+    libgrpc++-dev \
+    libgrpc-dev \
+    libprotobuf-dev \
+    libprotoc-dev \
+    protobuf-compiler \
+    protobuf-compiler-grpc \
+    python3-protobuf \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY debs/libnl-3-dev_{{ LIBNL3_VERSION_SONIC }}_{{ CONFIGURED_ARCH }}.deb debs/libnl-route-3-dev_{{ LIBNL3_VERSION_SONIC }}_{{ CONFIGURED_ARCH }}.deb debs/
 RUN dpkg -i debs/libnl-3-dev_{{ LIBNL3_VERSION_SONIC }}_{{ CONFIGURED_ARCH }}.deb debs/libnl-route-3-dev_{{ LIBNL3_VERSION_SONIC }}_{{ CONFIGURED_ARCH }}.deb
@@ -38,7 +45,7 @@ COPY ["start.sh", "/usr/bin/"]
 COPY ["critical_processes", "/etc/supervisor/"]
 
 ## Clean up
-RUN apt-get clean -y; apt-get autoclean -y; apt-get autoremove -y
+RUN apt-get clean -y; apt-get autoclean -y
 RUN rm -rf /debs
 
 ENTRYPOINT ["/usr/local/bin/supervisord"]
