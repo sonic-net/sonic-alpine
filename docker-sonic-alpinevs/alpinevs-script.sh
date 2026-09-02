@@ -1,9 +1,19 @@
 #!/bin/bash -ex
 
-# This script now calls pkt-handler at the end and blocks. Because of this,
-# alpinevs-healthcheck.sh expects the script to be always running.
-# If pkt-handler is made to run in the background and this script terminates
-# modify the health script, perhaps handling this as a special case.
-
 /usr/bin/alpinevs-init.sh
-/usr/bin/alpinevs-config.sh
+
+# Wait for Redis to be responsive
+echo "Waiting for Redis to start..."
+MAX_RETRIES=30
+COUNT=0
+while ! redis-cli ping > /dev/null 2>&1; do
+    sleep 1
+    COUNT=$((COUNT + 1))
+    if [ $COUNT -ge $MAX_RETRIES ]; then
+        echo "Redis failed to start in $MAX_RETRIES seconds. Exiting."
+        exit 1
+    fi
+done
+echo "Redis is up. Proceeding with configuration."
+
+exec /usr/bin/alpinevs-config.sh
