@@ -184,7 +184,10 @@ std::unique_ptr<lemming::dataplane::sai::Entrypoint::Stub> entry;
 
 sai_status_t sai_api_initialize(
     _In_ uint64_t flags, _In_ const sai_service_method_table_t* services) {
-  FLAGS_log_dir = "/var/log";
+
+  const char* log_dir = std::getenv("LUCIUS_LOG_DIR");
+  FLAGS_log_dir = (log_dir != nullptr) ? log_dir : "/var/log";
+
   google::InitGoogleLogging("lucius");
   google::InstallFailureSignalHandler();
 
