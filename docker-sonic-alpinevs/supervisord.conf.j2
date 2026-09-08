@@ -297,7 +297,7 @@ stderr_syslog=true
 [program:alpine]
 command=/usr/bin/alpinevs-script.sh
 priority=30
-autostart=true
+autostart=false
 autorestart=false
 startsecs=0
 startretries=0
@@ -306,7 +306,7 @@ exitcodes=0
 [program:pkt-handler]
 command=/usr/bin/pkt-handler
 priority=26
-autostart=true
+autostart=false
 autorestart=unexpected
 startsecs=5
 startretries=10

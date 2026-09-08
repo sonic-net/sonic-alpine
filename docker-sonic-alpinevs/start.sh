@@ -75,6 +75,7 @@ fi
 supervisorctl start syncd
 supervisorctl start portsyncd
 supervisorctl start orchagent
+supervisorctl start pkt-handler
 supervisorctl start coppmgrd
 supervisorctl start neighsyncd
 supervisorctl start fdbsyncd

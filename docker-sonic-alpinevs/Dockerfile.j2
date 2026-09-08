@@ -160,6 +160,11 @@ RUN mkdir -p /sock
 
 RUN mkdir -p /var/run/sshd
 
+ENV LUCIUS_LOG_DIR=/var/log/lucius
+RUN mkdir -p /var/log/lucius
+
+RUN rm -f /var/log/README
+
 COPY ["bin/sonic-admin.username", "/tmp/sonic-admin.username"]
 COPY ["bin/sonic-admin.password.hash", "/tmp/sonic-admin.password.hash"]
 
