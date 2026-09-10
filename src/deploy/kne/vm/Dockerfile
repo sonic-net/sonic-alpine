@@ -1,8 +1,10 @@
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update -qy \
- && apt-get upgrade -qy \
+ && apt-get install -qy --no-install-recommends software-properties-common \
+ && add-apt-repository -y universe \
+ && apt-get update -qy \
  && apt-get install -y \
     bridge-utils \
     iproute2 \
