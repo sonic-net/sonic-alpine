@@ -178,6 +178,10 @@ RUN sonic_admin="$(cat /tmp/sonic-admin.username)" && \
 
 COPY sshd.conf /etc/supervisor/conf.d/sshd.conf
 
+# Enable CLI completion in interactive root shells, including sudo su.
+RUN printf '\nif [ -r /usr/share/bash-completion/bash_completion ]; then\n    . /usr/share/bash-completion/bash_completion\nfi\n' \
+    >> /root/.bashrc
+
 ENV PLATFORM=x86_64-kvm_x86_64-r0
 ENV HWSKU=alpinevs
 ENV SOC_TARGET_SERVER=127.0.0.1:50000
