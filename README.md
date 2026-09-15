@@ -154,3 +154,28 @@ kubectl exec -it -n twodut-alpine alpine-dut -- bash
 kubectl logs -n twodut-alpine alpine-dut -c dataplane
 ```
 
+### Download the AlpineVS image 
+
+You can obtain the AlpineVS image in one of the following ways:
+
+1. **Run the download script**
+
+On a Linux system, run the [image download script](https://github.com/sonic-net/sonic-alpine/blob/master/utils/get_official_build.sh)
+```
+sudo apt install jq (if not already present)
+get_official_build.sh
+```
+
+2. **Download the official image**
+
+Download from the [AlpineVS official build](https://sonic-build.azurewebsites.net/ui/sonic/pipelines/3412/builds?branchName=master) or the [sonic-buildimage official build](https://sonic-build.azurewebsites.net/ui/sonic/pipelines/1/builds?branchName=master)
+
+#### Extract and load the image
+
+Extract the downloaded image archive and load the image into the Docker and KNE cluster:
+```
+docker load -i target/sonic-alpinevs-docker.tar.gz
+kind load docker-image alpine-vs:latest --name kne
+```
+Then follow the steps in the [Deploy](#deploy) section
+
