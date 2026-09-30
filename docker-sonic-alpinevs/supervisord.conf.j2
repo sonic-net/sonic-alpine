@@ -177,6 +177,17 @@ stderr_syslog=true
 environment=ASAN_OPTIONS="log_path=/var/log/asan/vrfmgrd-asan.log{{ asan_extra_options }}"
 {% endif %}
 
+{% if (docker_sonic_alpinevs_dataplane_mode | default(ALPINEVS_DATAPLANE_MODE | default('single'))) == "single" %}
+[program:lucius]
+command=/usr/bin/lucius.sh
+priority=15
+autostart=false
+autorestart=true
+startsecs=5
+stdout_logfile=/var/log/supervisor/lucius.log
+stderr_logfile=/var/log/supervisor/lucius.err
+{% endif %}
+
 [program:nbrmgrd]
 command=/usr/bin/nbrmgrd
 priority=15

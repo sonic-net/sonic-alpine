@@ -71,7 +71,16 @@ if [ "$start_chassis_db" != "1" ] && [ "$conn_chassis_db" != "1" ]; then
    cp $db_cfg_file_tmp $db_cfg_file
 fi
 
+# Load the environment variables into each ssh session
+tr '\0' '\n' < /proc/1/environ | grep -v -E '^(HOME|USER|LOGNAME|PATH|SHELL|PWD|OLDPWD|SHLVL)=' > /etc/environment
+chmod 644 /etc/environment
+
 /usr/bin/configdb-load.sh
+
+if [ "${ALPINEVS_DATAPLANE_MODE:-single}" = "single" ]; then
+    supervisorctl start lucius
+    /usr/bin/wait_for_lucius.sh
+fi
 
 supervisorctl start syncd
 supervisorctl start portsyncd

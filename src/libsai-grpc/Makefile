@@ -6,6 +6,13 @@ GRPC_OBJ = $(patsubst dataplane/proto/sai/%.proto, dataplane/proto/sai/%.grpc.pb
 SAI_SRC = $(wildcard dataplane/standalone/sai/*.cc)
 SAI_OBJ = $(patsubst dataplane/standalone/sai/%.cc, dataplane/standalone/sai/%.o, $(SAI_SRC))
 
+LEMMING_SRC_DIR := $(CURDIR)/lemming
+LUCIUS_BAZEL_TARGET := //dataplane/standalone/lucius:lucius
+
+.PHONY: lucius-bin
+lucius-bin:
+	cd $(LEMMING_SRC_DIR) && bazel build $(LUCIUS_BAZEL_TARGET)
+
 all: lucius-libsai-trixie
 
 $(PROTO_SRC) $(PROTO_GRPC_SRC) &:

@@ -2,7 +2,10 @@ Source: lucius-libsai
 Section: devel
 Priority: optional
 Maintainer: Roy Yi <royyi@google.com>
-Build-Depends: debhelper (>=10)
+Build-Depends: debhelper (>=10),
+	libpcap-dev,
+	libnl-3-dev,
+	libnl-genl-3-dev
 Standards-Version: 4.0.0
 
 Package: lucius-libsai

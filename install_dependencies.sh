@@ -27,6 +27,7 @@ $SUDO apt-get install -y \
     make \
     build-essential \
     debhelper \
+    libpcap-dev \
     libnl-3-dev \
     libnl-genl-3-dev \
     golang-any

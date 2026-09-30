@@ -134,6 +134,14 @@ COPY ["asic_table.json", "/etc/sonic/"]
 COPY ["zero_profiles.json", "/etc/sonic"]
 COPY ["buffermgrd.sh", "/usr/bin/"]
 
+{% set dataplane_mode = docker_sonic_alpinevs_dataplane_mode | default('single') %}
+{% if dataplane_mode == "single" %}
+COPY ["bin/lucius", "/usr/bin/lucius"]
+COPY ["lucius.sh", "/usr/bin/lucius.sh"]
+COPY ["wait_for_lucius.sh", "/usr/bin/wait_for_lucius.sh"]
+RUN chmod +x /usr/bin/lucius /usr/bin/lucius.sh /usr/bin/wait_for_lucius.sh
+{% endif %}
+
 # Copy the entire device hardware profile directory structure
 COPY ["device/", "/usr/share/sonic/device/"]
 
@@ -185,5 +193,10 @@ RUN printf '\nif [ -r /usr/share/bash-completion/bash_completion ]; then\n    . 
 ENV PLATFORM=x86_64-kvm_x86_64-r0
 ENV HWSKU=alpinevs
 ENV SOC_TARGET_SERVER=127.0.0.1:50000
+
+ENV ALPINEVS_DATAPLANE_MODE={{ dataplane_mode }}
+{% if dataplane_mode == "single" %}
+ENV LUCIUS_LISTEN_ADDR=127.0.0.1:50000
+{% endif %}
 
 ENTRYPOINT ["/usr/local/bin/supervisord"]

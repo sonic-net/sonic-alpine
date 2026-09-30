@@ -45,11 +45,24 @@ $(DOCKER_SONIC_ALPINEVS)_LOAD_DOCKERS += $(DOCKER_SWSS_LAYER_TRIXIE)
 SONIC_DOCKER_IMAGES += $(DOCKER_SONIC_ALPINEVS)
 SONIC_TRIXIE_DOCKERS += $(DOCKER_SONIC_ALPINEVS)
 
+# Set dataplane mode to 'single' or 'dual' for the single/dual docker mode
+ALPINEVS_DATAPLANE_MODE ?= single
+ifneq ($(filter $(ALPINEVS_DATAPLANE_MODE),single dual),$(ALPINEVS_DATAPLANE_MODE))
+$(error Unsupported ALPINEVS_DATAPLANE_MODE '$(ALPINEVS_DATAPLANE_MODE)'. Expected 'single' or 'dual')
+endif
+
+export docker_sonic_alpinevs_dataplane_mode := $(ALPINEVS_DATAPLANE_MODE)
+$(DOCKER_SONIC_ALPINEVS)_J2_VARS += docker_sonic_alpinevs_dataplane_mode=$(ALPINEVS_DATAPLANE_MODE)
+
 ALPINEVS_DOCKER_STAGING_DIR := $(PLATFORM_PATH)/docker-sonic-alpinevs/bin
 ALPINEVS_CONFIG_SRC := $(PLATFORM_PATH)/src/services/config/alpinevs-config.sh
 ALPINEVS_INIT_SRC := $(PLATFORM_PATH)/docker-sonic-alpinevs/alpinevs-init.sh
 ALPINEVS_ADMIN_USERNAME_FILE := $(ALPINEVS_DOCKER_STAGING_DIR)/sonic-admin.username
 ALPINEVS_ADMIN_PASSWORD_HASH := $(ALPINEVS_DOCKER_STAGING_DIR)/sonic-admin.password.hash
+
+LIBSAI_GRPC_DIR := $(PLATFORM_PATH)/src/libsai-grpc
+LUCIUS_STAGED_BIN := $(ALPINEVS_DOCKER_STAGING_DIR)/lucius
+LUCIUS_BAZEL_BIN := $(LIBSAI_GRPC_DIR)/lemming/bazel-bin/dataplane/standalone/lucius/lucius_/lucius
 
 ALPINEVS_DOCKER_STAGE_FILES := \
 	$(ALPINEVS_DOCKER_STAGING_DIR)/alpinevs-config.sh \
@@ -57,6 +70,17 @@ ALPINEVS_DOCKER_STAGE_FILES := \
 	$(ALPINEVS_ADMIN_USERNAME_FILE) \
 	$(ALPINEVS_ADMIN_PASSWORD_HASH)
 
+ifeq ($(ALPINEVS_DATAPLANE_MODE),single)
+ALPINEVS_DOCKER_STAGE_FILES += \
+	$(LUCIUS_STAGED_BIN)
+
+.PHONY: $(LUCIUS_STAGED_BIN)
+$(LUCIUS_STAGED_BIN): | $(ALPINEVS_DOCKER_STAGING_DIR)
+	$(MAKE) -C $(LIBSAI_GRPC_DIR) lucius-bin
+	cp $(LUCIUS_BAZEL_BIN) $@
+	chmod ug+w $@
+endif
+ 
 $(ALPINEVS_DOCKER_STAGING_DIR):
 	mkdir -p $@
 
