@@ -8,8 +8,8 @@ $(PKT_HANDLER)_RDEPENDS += $(LIBNL3) $(LIBNL_GENL3)
 
 PKT_HANDLER_SRC_FILES = \
     $(wildcard $($(PKT_HANDLER)_SRC_PATH)/*.go) \
-    $(wildcard $($(PKT_HANDLER)_SRC_PATH)/go.mod) \
-    $(wildcard $($(PKT_HANDLER)_SRC_PATH)/go.sum) \
+    $(ALPINE_SRC_PATH)/src/go.mod \
+    $(ALPINE_SRC_PATH)/src/go.sum \
     $($(PKT_HANDLER)_SRC_PATH)/Makefile \
     $($(PKT_HANDLER)_SRC_PATH)/lucius-pkthandler.service \
     $(wildcard $($(PKT_HANDLER)_SRC_PATH)/debian/*)

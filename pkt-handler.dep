@@ -2,6 +2,8 @@ SPATH       := $($(PKT_HANDLER)_SRC_PATH)
 DEP_FILES   := $(SONIC_COMMON_FILES_LIST) platform/alpinevs/pkt-handler.mk platform/alpinevs/pkt-handler.dep
 DEP_FILES   += $(SONIC_COMMON_BASE_FILES_LIST)
 SMDEP_FILES := $(addprefix $(SPATH)/,$(shell cd $(SPATH) && git ls-files))
+# pkt-handler has no go.mod of its own; src/go.mod sets both its deps and its Go version.
+SMDEP_FILES += $(SPATH)/../../go.mod $(SPATH)/../../go.sum
 
 $(PKT_HANDLER)_CACHE_MODE  := GIT_CONTENT_SHA
 $(PKT_HANDLER)_DEP_FLAGS   := $(SONIC_COMMON_FLAGS_LIST)

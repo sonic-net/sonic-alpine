@@ -9,12 +9,15 @@ export GOFLAGS += -modcacherw
 
 all: pkt-handler
 
+# Asking the binary (not go_dist/VERSION) and extracting into .tmp means a partial
+# download or a go_dist for another arch is never mistaken for a usable one.
 pkt-handler:
-	@if [ "$$(head -n1 $(GO_LOCAL)/VERSION 2>/dev/null)" != "go$(GO_VERSION)" ]; then \
+	@if [ "$$($(GO_LOCAL)/bin/go env GOVERSION GOHOSTARCH 2>/dev/null | tr '\n' ' ')" != "go$(GO_VERSION) $(CONFIGURED_ARCH) " ]; then \
 		echo "Downloading Go $(GO_VERSION)..."; \
-		rm -rf $(GO_LOCAL); \
-		mkdir -p $(GO_LOCAL); \
-		curl -fL https://go.dev/dl/go$(GO_VERSION).linux-$(CONFIGURED_ARCH).tar.gz | tar -C $(GO_LOCAL) --strip-components=1 -xz; \
+		rm -rf $(GO_LOCAL) $(GO_LOCAL).tmp && \
+		mkdir -p $(GO_LOCAL).tmp && \
+		curl -fL https://go.dev/dl/go$(GO_VERSION).linux-$(CONFIGURED_ARCH).tar.gz | tar -C $(GO_LOCAL).tmp --strip-components=1 -xz && \
+		mv $(GO_LOCAL).tmp $(GO_LOCAL) || exit 1; \
 	fi
 
 	$(GO_LOCAL)/bin/go version
@@ -27,5 +30,4 @@ install:
 clean:
 	rm -rf pkt-handler
 
-.PHONY:
-	clean install
+.PHONY: all pkt-handler clean install
