@@ -10,8 +10,10 @@ LEMMING_SRC_DIR := $(CURDIR)/lemming
 LUCIUS_BAZEL_TARGET := //dataplane/standalone/lucius:lucius
 
 .PHONY: lucius-bin
+# Let Bazel's cc autoconf pick the host compiler; a CC/CXX wrapper exported by the outer
+# build (e.g. a compiler cache launcher) breaks rules_go cgo actions, which rebuild PATH.
 lucius-bin:
-	cd $(LEMMING_SRC_DIR) && bazel build $(LUCIUS_BAZEL_TARGET)
+	cd $(LEMMING_SRC_DIR) && env -u CC -u CXX bazel build $(LUCIUS_BAZEL_TARGET)
 
 all: lucius-libsai-trixie
 
