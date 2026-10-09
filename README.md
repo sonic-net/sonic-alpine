@@ -145,7 +145,7 @@ twodut-alpine   service-alpine-dut    LoadBalancer   10.96.195.3     192.168.8.5
 
 ssh admin@a.b.c.d -o ProxyCommand=none -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no
 ```
-The password is set in your [sonic-buildimage/rules/config](https://github.com/sonic-net/sonic-buildimage/blob/737879a82577bb2f102fd6de98cb4f708a6da177/rules/config#L78). You may want to change it to something simpler.
+The password is set in your [sonic-buildimage/rules/config](https://github.com/sonic-net/sonic-buildimage/blob/737879a82577bb2f102fd6de98cb4f708a6da177/rules/config#L78).  The default password is YourPaSsWoRd . You may want to change it to something easier.
 
 5. Useful commands
 
@@ -201,4 +201,68 @@ SONIC_BUILD_JOBS=8 make target/docker-sonic-alpinevs.gz
 ```
 docker load -i target/docker-sonic-alpinevs.gz
 ```
+
+
+
+### Deploy
+Pre-requisite:
+A KVM enabled workstation (or VM) that can support VMs on it
+
+1. [Download and install KNE](https://github.com/openconfig/kne). 
+
+Setup KNE cluster
+
+```
+kne deploy deploy/kne/kind-bridge.yaml
+```
+
+2. Load alpinevs container image in KNE
+```
+kind load docker-image alpine-vs:latest --name kne
+```
+
+Unlike AVS, AVS-lite does not need separate installation of Lemming.
+
+4. Create the two switch Alpine topology:
+
+- Open the [twodut-single-docker-alpinevs.txt](https://github.com/sonic-net/sonic-alpine/blob/master/src/deploy/kne/twodut-single-docker-alpinevs.txt) file. Note that this is not the same topolgy file used for AVS. Ensure that it points to the correct Alpine image name. You can find the name of the images from the output of 'docker images -a'. For example,
+
+```
+docker images -a | grep alpine
+alpine-vs:latest                                               ebd8a4a5b357      5.04GB      0B
+```
+
+- Create the KNE topology
+```
+kne create twodut-single-docker-alpinevs.txt
+```
+Confirm that the alpine-ctl and alpine-dut are in running state.
+```
+kubectl get pods -A | grep alpine
+docker-twodut-alpine   docker-alpine-ctl   1/1  Running  0  3m10s
+docker-twodut-alpine   docker-alpine-dut   1/1  Running  0  3m10s
+
+```
+
+5. Terminals
+
+You can set up the SSH as described in the 'terminals' section under [deploy](#deploy) but with slightly different namespace and service names.
+
+```
+kubectl get svc -n docker-twodut-alpine service-docker-alpine-dut
+NAME                        TYPE           CLUSTER-IP      EXTERNAL-IP    PORT(S)                    AGE
+service-docker-alpine-dut   LoadBalancer   10.96.146.208   192.168.8.50   22/TCP,9339/TCP,9559/TCP   7m50s
+
+kubectl get svc -n docker-twodut-alpine service-docker-alpine-ctl
+NAME                        TYPE           CLUSTER-IP     EXTERNAL-IP    PORT(S)                    AGE
+service-docker-alpine-ctl   LoadBalancer   10.96.104.18   192.168.8.51   22/TCP,9339/TCP,9559/TCP   7m54s
+```
+
+Or more easily, get the external ip addresses directly from kubectl as above and insert them in the ssh command
+```
+ssh admin@a.b.c.d -o ProxyCommand=none -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no
+```
+
+The password is set in your [sonic-buildimage/rules/config](https://github.com/sonic-net/sonic-buildimage/blob/737879a82577bb2f102fd6de98cb4f708a6da177/rules/config#L78). The default password is YourPaSsWoRd.
+
 
