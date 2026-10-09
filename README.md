@@ -8,7 +8,7 @@ The High Level Design document of Alpine can be found [here](https://github.com/
 
 There are two flavours of Alpine. The Alpine Virtual Switch (AVS or ALViS) is made up of two containers - the Switchstack Container that runs the SONiC VM and an ASIC Simulation Container that runs the virtual ASIC. The SwitchStack Container hosts a VM on which the SONiC components run in their own contaniers.
 
-The Alpine Virtual Switch-lite (AVS-lite) is a lightwieight version of the AVS. It runs on a single container in which the SONiC components run as processes. The dataplane also runs as a process.
+The Alpine Virtual Switch-lite (AVS-lite) is a lightweight version of the AVS. It runs on a single container in which the SONiC components run as processes. The virtual ASIC also runs as a process.
 
 ## Alpine Virtual Switch
 
@@ -56,12 +56,12 @@ PLATFORM=alpinevs make configure
 SONIC_BUILD_JOBS specifies the number of build tasks that run parallely. An ideal number depends on the resources but a value of 8 or 16 is reasonable for most systems.
 
 ```
-SONIC_BUILD_JOBS=16 make target/sonic-alpinevs.img.gz
+SONIC_BUILD_JOBS=8 make target/sonic-alpinevs.img.gz
 ```
 
-6. Build alpinevs container
+6. Load the alpinevs container
 ```
-platform/alpinevs/src/build/build_alpinevs_container.sh
+docker load -i target/sonic-alpinevs-docker.tar.gz
 ```
 
 ### Deploy
@@ -184,4 +184,21 @@ docker load -i target/sonic-alpinevs-docker.tar.gz
 kind load docker-image alpine-vs:latest --name kne
 ```
 Then follow the steps in the [Deploy](#deploy) section
+
+## Alpine Virtual Switch-lite (AVS-lite)
+
+Follow the steps 1 to 4 to [clone and configure](#build) AlpineVS.
+
+1. Build
+
+SONIC_BUILD_JOBS specifies the number of build tasks that run parallely. An ideal number depends on the resources but a value of 8 or 16 is reasonable for most systems.
+
+```
+SONIC_BUILD_JOBS=8 make target/docker-sonic-alpinevs.gz
+```
+
+2. Load the alpinevs container
+```
+docker load -i target/docker-sonic-alpinevs.gz
+```
 
