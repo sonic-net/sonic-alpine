@@ -3,8 +3,14 @@
 
 ## Instructions
 
-### Documentation
+## Documentation
 The High Level Design document of Alpine can be found [here](https://github.com/sonic-net/SONiC/blob/master/doc/alpine/alpine_hld.md).
+
+There are two flavours of Alpine. The Alpine Virtual Switch (AVS or ALViS) is made up of two containers - the Switchstack Container that runs the SONiC VM and an ASIC Simulation Container that runs the virtual ASIC. The SwitchStack Container hosts a VM on which the SONiC components run in their own contaniers.
+
+The Alpine Virtual Switch-lite (AVS-lite) is a lightwieight version of the AVS. It runs on a single container in which the SONiC components run as processes. The dataplane also runs as a process.
+
+## Alpine Virtual Switch
 
 ### Build
 1. Clone the SONiC repo:
