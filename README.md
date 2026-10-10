@@ -3,10 +3,16 @@
 
 ## Instructions
 
-### Documentation
+## Documentation
 The High Level Design document of Alpine can be found [here](https://github.com/sonic-net/SONiC/blob/master/doc/alpine/alpine_hld.md).
 
-### Build
+There are two flavours of Alpine. The Alpine Virtual Switch (AVS or ALViS) is made up of two containers - the Switchstack Container that runs the SONiC VM and an ASIC Simulation Container that runs the virtual ASIC. The SwitchStack Container hosts a VM on which the SONiC components run in their own contaniers.
+
+The Alpine Virtual Switch-lite (AVS-lite) is a lightweight version of the AVS. It runs on a single container in which the SONiC components run as processes. The virtual ASIC also runs as a process.
+
+## Alpine Virtual Switch
+
+### Build AVS
 1. Clone the SONiC repo:
 ```
 git clone https://github.com/sonic-net/sonic-buildimage.git
@@ -19,46 +25,25 @@ cd sonic-buildimage
 make init
 ```
 
-3. Enable build for modules of interest
-
-These are optional modules that are not necessary for the base Alpine.
-
-#### GNMI
-```
-echo "INCLUDE_SYSTEM_GNMI = y" >> rules/config.user
-echo "ENABLE_TRANSLIB_WRITE = y" >> rules/config.user
-```
-
-#### P4RT
-```
-echo "INCLUDE_P4RT = y" >> rules/config.user
-```
-
-Pull the latest version of the sonic-pins
-
-```
-git submodule update --remote src/sonic-p4rt/sonic-pins
-```
-
-4. Configure
+3. Configure
 ```
 PLATFORM=alpinevs make configure
 ```
 
-5. Build
+4. Build
 
-SONIC_BUILD_JOBS specifies the number of build tasks that run parallely. An ideal number depends on the resources but a value of 8 or 16 is reasonable for most systems.
+SONIC_BUILD_JOBS specifies the number of build tasks that run parallely. An ideal number depends on the resources in the build system but a value of 8 or 16 is reasonable for most systems.
 
 ```
-SONIC_BUILD_JOBS=16 make target/sonic-alpinevs.img.gz
+SONIC_BUILD_JOBS=8 make target/sonic-alpinevs.img.gz
 ```
 
-6. Build alpinevs container
+5. Load the alpinevs container
 ```
-platform/alpinevs/src/build/build_alpinevs_container.sh
+docker load -i target/sonic-alpinevs-docker.tar.gz
 ```
 
-### Deploy
+### Deploy AVS
 Pre-requisite:
 A KVM enabled workstation (or VM) that can support VMs on it
 
@@ -100,7 +85,7 @@ docker images -a | grep alpine
 alpine-vs:latest                                               ebd8a4a5b357      5.04GB      0B
 ```
 
-- Create the KNE topology
+- Create the KNE topology. Run this from the [src/deploy/kne](https://github.com/sonic-net/sonic-alpine/tree/master/src/deploy/kne) directory.
 ```
 kne create twodut-alpine-vs.pb.txt
 ```
@@ -139,7 +124,7 @@ twodut-alpine   service-alpine-dut    LoadBalancer   10.96.195.3     192.168.8.5
 
 ssh admin@a.b.c.d -o ProxyCommand=none -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no
 ```
-The password is set in your [sonic-buildimage/rules/config](https://github.com/sonic-net/sonic-buildimage/blob/737879a82577bb2f102fd6de98cb4f708a6da177/rules/config#L78). You may want to change it to something simpler.
+The password is set in your [sonic-buildimage/rules/config](https://github.com/sonic-net/sonic-buildimage/blob/737879a82577bb2f102fd6de98cb4f708a6da177/rules/config#L78).  The default password is YourPaSsWoRd . You may want to change it to something easier.
 
 5. Useful commands
 
@@ -154,9 +139,9 @@ kubectl exec -it -n twodut-alpine alpine-dut -- bash
 kubectl logs -n twodut-alpine alpine-dut -c dataplane
 ```
 
-### Download the AlpineVS image 
+### Download the AVS image 
 
-You can obtain the AlpineVS image in one of the following ways:
+You can get the pre-built AlpineVS image in one of the following ways:
 
 1. **Run the download script**
 
@@ -168,7 +153,7 @@ get_official_build.sh
 
 2. **Download the official image**
 
-Download from the [AlpineVS official build](https://sonic-build.azurewebsites.net/ui/sonic/pipelines/3412/builds?branchName=master) or the [sonic-buildimage official build](https://sonic-build.azurewebsites.net/ui/sonic/pipelines/1/builds?branchName=master)
+Download from the [AlpineVS official build](https://sonic-build.azurewebsites.net/ui/sonic/pipelines/3412/builds?branchName=master) or the [sonic-buildimage official build](https://sonic-build.azurewebsites.net/ui/sonic/pipelines/1/builds?branchName=master)  The images are around 10GB and the download is usually flaky. Running the download script is usually the easier option.
 
 #### Extract and load the image
 
@@ -177,5 +162,109 @@ Extract the downloaded image archive and load the image into the Docker and KNE 
 docker load -i target/sonic-alpinevs-docker.tar.gz
 kind load docker-image alpine-vs:latest --name kne
 ```
-Then follow the steps in the [Deploy](#deploy) section
+Then follow the steps in the [Deploy](#deploy-avs) section
+
+## Alpine Virtual Switch-lite (AVS-lite)
+
+Follow the steps 1 to 3 to [clone and configure](#build) AlpineVS.
+
+1. Build
+
+SONIC_BUILD_JOBS specifies the number of build tasks that run parallely. A value of 8 or 16 is reasonable for most systems.
+
+```
+SONIC_BUILD_JOBS=8 make target/docker-sonic-alpinevs.gz
+```
+
+2. Load the alpinevs container
+```
+docker load -i target/docker-sonic-alpinevs.gz
+```
+
+### Deploy AVS-lite
+Pre-requisite:
+A KVM enabled workstation (or VM) that can support VMs on it
+
+1. [Download and install KNE](https://github.com/openconfig/kne). 
+
+Setup KNE cluster
+
+```
+kne deploy deploy/kne/kind-bridge.yaml
+```
+
+2. Load alpinevs container image in KNE
+```
+kind load docker-image alpine-vs:latest --name kne
+```
+
+Unlike AVS, AVS-lite does not need separate installation of Lemming.
+
+4. Create the two switch Alpine topology:
+
+- Open the [twodut-single-docker-alpinevs.txt](https://github.com/sonic-net/sonic-alpine/blob/master/src/deploy/kne/twodut-single-docker-alpinevs.txt) file. Note that this is not the same topolgy file used for AVS. Ensure that it points to the correct Alpine image name. You can find the name of the image from the output of 'docker images -a'. For example,
+
+```
+docker images -a | grep alpine
+alpine-vs:latest                                               ebd8a4a5b357      5.04GB      0B
+```
+
+- Create the KNE topology. Run this from the [src/deploy/kne](https://github.com/sonic-net/sonic-alpine/tree/master/src/deploy/kne) directory.
+```
+kne create twodut-single-docker-alpinevs.txt
+```
+Confirm that the alpine-ctl and alpine-dut are in running state.
+```
+kubectl get pods -A | grep alpine
+docker-twodut-alpine   docker-alpine-ctl   1/1  Running  0  3m10s
+docker-twodut-alpine   docker-alpine-dut   1/1  Running  0  3m10s
+
+```
+
+5. Terminals
+
+You can set up the SSH as described in the 'terminals' section under [deploy](#deploy-avs) but with slightly different namespace and service names.
+
+```
+kubectl get svc -n docker-twodut-alpine service-docker-alpine-dut
+NAME                        TYPE           CLUSTER-IP      EXTERNAL-IP    PORT(S)                    AGE
+service-docker-alpine-dut   LoadBalancer   10.96.146.208   192.168.8.50   22/TCP,9339/TCP,9559/TCP   7m50s
+
+kubectl get svc -n docker-twodut-alpine service-docker-alpine-ctl
+NAME                        TYPE           CLUSTER-IP     EXTERNAL-IP    PORT(S)                    AGE
+service-docker-alpine-ctl   LoadBalancer   10.96.104.18   192.168.8.51   22/TCP,9339/TCP,9559/TCP   7m54s
+```
+
+Or more easily, get the external ip addresses directly from kubectl as above and insert them in the ssh command
+```
+ssh admin@a.b.c.d -o ProxyCommand=none -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no
+```
+
+The password is set in your [sonic-buildimage/rules/config](https://github.com/sonic-net/sonic-buildimage/blob/737879a82577bb2f102fd6de98cb4f708a6da177/rules/config#L78). The default password is YourPaSsWoRd.
+
+
+### Download the AVS-lite image 
+
+You can get the pre-built AlpineVS-lite image in one of the following ways:
+
+1. **Run the download script**
+
+On a Linux system, run the [image download script](https://github.com/sonic-net/sonic-alpine/blob/master/utils/get_official_build.sh)
+```
+sudo apt install jq (if not already present)
+get_official_build.sh
+```
+
+2. **Download the official image**
+
+Download from the [AlpineVS official build](https://sonic-build.azurewebsites.net/ui/sonic/pipelines/3412/builds?branchName=master) or the [sonic-buildimage official build](https://sonic-build.azurewebsites.net/ui/sonic/pipelines/1/builds?branchName=master)  The images are around 10GB and the download is usually flaky. If download using the script is possible, that is the better option.
+
+#### Extract and load the image
+
+Extract the downloaded image archive and load the image into the Docker and KNE cluster:
+```
+docker load -i target/docker-sonic-alpinevs.gz
+kind load docker-image alpine-vs:latest --name kne
+```
+Then follow the steps in the [Deploy](#deploy-avs-lite) section
 
