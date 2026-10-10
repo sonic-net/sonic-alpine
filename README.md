@@ -3,10 +3,9 @@
 
 ## Instructions
 
-## Documentation
 The High Level Design document of Alpine can be found [here](https://github.com/sonic-net/SONiC/blob/master/doc/alpine/alpine_hld.md).
 
-There are two flavours of Alpine. The Alpine Virtual Switch (AVS or ALViS) is made up of two containers - the Switchstack Container that runs the SONiC VM and an ASIC Simulation Container that runs the virtual ASIC. The SwitchStack Container hosts a VM on which the SONiC components run in their own contaniers.
+There are two flavours of Alpine. The Alpine Virtual Switch (AVS or ALViS) is made up of two containers - the Switchstack Container that runs the SONiC VM and an ASIC Simulation Container that runs the virtual ASIC. The SwitchStack Container hosts the VM on which the SONiC components run in their own containers.
 
 The Alpine Virtual Switch-lite (AVS-lite) is a lightweight version of the AVS. It runs on a single container in which the SONiC components run as processes. The virtual ASIC also runs as a process.
 
@@ -183,7 +182,7 @@ docker load -i target/docker-sonic-alpinevs.gz
 
 ### Deploy AVS-lite
 Pre-requisite:
-A KVM enabled workstation (or VM) that can support VMs on it
+A KVM enabled workstation
 
 1. [Download and install KNE](https://github.com/openconfig/kne). 
 
@@ -195,7 +194,7 @@ kne deploy deploy/kne/kind-bridge.yaml
 
 2. Load alpinevs container image in KNE
 ```
-kind load docker-image alpine-vs:latest --name kne
+kind load docker-image docker-sonic-alpine-vs:latest --name kne
 ```
 
 Unlike AVS, AVS-lite does not need separate installation of Lemming.
@@ -206,7 +205,7 @@ Unlike AVS, AVS-lite does not need separate installation of Lemming.
 
 ```
 docker images -a | grep alpine
-alpine-vs:latest                                               ebd8a4a5b357      5.04GB      0B
+docker-sonic-alpinevs:latest   172d5653b820      1.21GB             0B
 ```
 
 - Create the KNE topology. Run this from the [src/deploy/kne](https://github.com/sonic-net/sonic-alpine/tree/master/src/deploy/kne) directory.

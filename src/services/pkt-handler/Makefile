@@ -11,8 +11,8 @@ pkt-handler:
 		curl -L https://go.dev/dl/go$(GO_VERSION).linux-$(CONFIGURED_ARCH).tar.gz | tar -C $(GO_LOCAL) --strip-components=1 -xz; \
 	fi
 
-	$(GO_LOCAL)/bin/go version
-	$(GO_LOCAL)/bin/go build -buildvcs=false -o pkt-handler
+	$(MAKE) -C ../../libsai-grpc pkthandler-trixie
+	cp ../../libsai-grpc/pkthandler ./pkt-handler
 
 install:
 	install -D ./pkt-handler $(DESTDIR)/usr/bin/pkt-handler
