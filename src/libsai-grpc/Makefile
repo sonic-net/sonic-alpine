@@ -61,6 +61,13 @@ lucius-libsai-trixie: check-docker
 	docker cp libsai-temp:/build/libsai.so ./libsai.so
 	docker rm libsai-temp
 
+pkthandler-trixie: check-docker
+	DOCKER_BUILDKIT=1 docker build -f Dockerfile.pkthandler -t lemming-pkthandler:latest ..
+	docker rm -f pkthandler-temp 2>/dev/null || true
+	docker create --name pkthandler-temp lemming-pkthandler:latest
+	docker cp pkthandler-temp:/build/pkthandler ./pkthandler
+	docker rm pkthandler-temp
+
 install: lucius-libsai-trixie
 	echo "Inside lucius_sai"
 	install -D ./libsai.so $(DESTDIR)/usr/lib/x86_64-linux-gnu/libsaivs.so.0.0.0
@@ -69,6 +76,6 @@ install: lucius-libsai-trixie
 clean:
 	-rm -f dataplane/proto/sai/*.cc dataplane/proto/sai/*.h dataplane/proto/sai/*.o
 	-rm -f dataplane/standalone/sai/*.o
-	-rm -f libsai.so
+	-rm -f libsai.so pkthandler
 
-.PHONY: clean install check-docker lucius-libsai-trixie
+.PHONY: clean install check-docker lucius-libsai-trixie lucius-bin pkthandler-trixie

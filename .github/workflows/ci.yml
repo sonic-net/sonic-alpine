@@ -38,9 +38,6 @@ jobs:
         echo "Building alpine-device..."
         (cd src/sonic-platform-alpinevs/alpinevs-device && dpkg-buildpackage -us -uc -b)
 
-        echo "Building pkt-handler..."
-        (cd src/services/pkt-handler && dpkg-buildpackage -us -uc -b -d)
-
     - name: Upload Alpine Artifacts
       uses: actions/upload-artifact@v4
       with:
@@ -49,11 +46,10 @@ jobs:
           **/alpine-config_*.deb
           **/alpine-device_*.deb
           **/alpine-init_*.deb
-          **/lucius-pkthandler_*.deb
 
   # Build lucius-libsai which runs inside its own docker
   build-libsai:
-    name: Build lucius-libsai
+    name: Build lucius-libsai and pkt-handler
     runs-on: ubuntu-22.04
 
     steps:
@@ -66,12 +62,13 @@ jobs:
         chmod +x ./install_dependencies.sh
         ./install_dependencies.sh
 
-    - name: Build lucius-libsai
+    - name: Build lucius-libsai and pkt-handler
       run: |
         echo "Building lucius-libsai..."
-        cd src/libsai-grpc
+        (cd src/libsai-grpc && dpkg-buildpackage -us -uc -b)
 
-        dpkg-buildpackage -us -uc -b
+        echo "Building pkt-handler ..."
+        (cd src/services/pkt-handler && dpkg-buildpackage -us -uc -b -d)
 
     - name: Upload Libsai Artifacts
       uses: actions/upload-artifact@v4
@@ -79,6 +76,7 @@ jobs:
         name: alpine-docker-debs
         path: |
           **/lucius-libsai_*.deb
+          **/lucius-pkt_handler_*.deb
 
   # Combine all artifacts into a single downloadable zip
   merge-artifacts:
