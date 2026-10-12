@@ -1,0 +1,22 @@
+FROM golang:1.26-bookworm
+
+WORKDIR /build
+
+# Install libnl required for genetlink cgo
+RUN apt-get update && apt-get install -y libnl-3-dev libnl-genl-3-dev
+
+# Copy go module files
+COPY libsai-grpc/lemming/go.mod libsai-grpc/lemming/go.sum ./
+RUN go mod download
+
+# Copy necessary sources
+COPY libsai-grpc/lemming/dataplane/kernel/ dataplane/kernel/
+COPY libsai-grpc/lemming/dataplane/standalone/pkthandler/ dataplane/standalone/pkthandler/
+COPY libsai-grpc/lemming/dataplane/proto/packetio/ dataplane/proto/packetio/
+COPY libsai-grpc/lemming/proto/forwarding/ proto/forwarding/
+COPY libsai-grpc/lemming/dataplane/forwarding/ dataplane/forwarding/
+COPY libsai-grpc/lemming/dataplane/dplaneopts/ dataplane/dplaneopts/
+COPY services/pkt-handler/main.go dataplane/standalone/pkthandler/main.go
+
+# Build pkthandler
+RUN go build -o pkthandler ./dataplane/standalone/pkthandler
