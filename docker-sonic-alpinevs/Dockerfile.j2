@@ -132,7 +132,7 @@ COPY ["init_cfg.json.j2", "/usr/share/sonic/templates/"]
 COPY ["default_chassis_cfg.json", "/etc/default/sonic-db/"]
 COPY ["asic_table.json", "/etc/sonic/"]
 COPY ["zero_profiles.json", "/etc/sonic"]
-COPY ["buffermgrd.sh", "/usr/bin/"]
+COPY ["buffermgrd.sh", "hostname-config.sh", "/usr/bin/"]
 
 {% set dataplane_mode = docker_sonic_alpinevs_dataplane_mode | default('single') %}
 {% if dataplane_mode == "single" %}
