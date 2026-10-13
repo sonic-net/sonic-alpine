@@ -71,11 +71,15 @@ if [ "$start_chassis_db" != "1" ] && [ "$conn_chassis_db" != "1" ]; then
    cp $db_cfg_file_tmp $db_cfg_file
 fi
 
+sysctl net.ipv6.conf.eth0.disable_ipv6=1
+sysctl net.ipv6.conf.all.disable_ipv6=1
+
 # Load the environment variables into each ssh session
 tr '\0' '\n' < /proc/1/environ | grep -v -E '^(HOME|USER|LOGNAME|PATH|SHELL|PWD|OLDPWD|SHLVL)=' > /etc/environment
 chmod 644 /etc/environment
 
 /usr/bin/configdb-load.sh
+/usr/bin/hostname-config.sh
 
 if [ "${ALPINEVS_DATAPLANE_MODE:-single}" = "single" ]; then
     supervisorctl start lucius
