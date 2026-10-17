@@ -263,7 +263,7 @@ Download from the [AlpineVS official build](https://sonic-build.azurewebsites.ne
 Extract the downloaded image archive and load the image into the Docker and KNE cluster:
 ```
 docker load -i target/docker-sonic-alpinevs.gz
-kind load docker-image alpine-vs:latest --name kne
+kind load docker-image docker-alpine-vs:latest --name kne
 ```
 Then follow the steps in the [Deploy](#deploy-avs-lite) section
 

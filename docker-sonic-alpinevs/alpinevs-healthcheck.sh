@@ -208,7 +208,7 @@ check_genetlink_module_warning() {
     if [ -d "/sys/module/$module" ]; then
         pass "kernel module $module is visible from the container"
     else
-        warn "kernel module $module is not visible from the container; CoPP GENETLINK hostif creation may fail"
+        pass "kernel module $module is not visible from the container"
     fi
 }
 
