@@ -248,7 +248,7 @@ You can get the pre-built AlpineVS-lite image in one of the following ways:
 
 1. **Run the download script**
 
-On a Linux system, run the [image download script](https://github.com/sonic-net/sonic-alpine/blob/master/utils/get_official_build.sh)
+On a Linux system, run the [image download script](https://github.com/sonic-net/sonic-alpine/blob/master/utils/get_official_avslite_image.sh)
 ```
 sudo apt install jq (if not already present)
 get_official_build.sh
