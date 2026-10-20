@@ -187,6 +187,13 @@ if [ -f /etc/sonic/config_db.json ]; then
     redis-cli -n 6 hmset "TRANSCEIVER_DOM_SENSOR|Ethernet120" "module_state" "ModuleReady"
     redis-cli -n 6 hmset "TRANSCEIVER_DOM_SENSOR|Ethernet124" "module_state" "ModuleReady"
 
+# The entries to APPSTATE_DB:PORT_TABLE are added because this is not yet supported in
+# portsorch. When the portsorch is updated, remove these lines
+    redis-cli -n 14 HMSET "PORT_TABLE:Ethernet0" "id" "1"
+    redis-cli -n 14 HMSET "PORT_TABLE:Ethernet4" "id" "2"
+    redis-cli -n 14 HMSET "PORT_TABLE:Ethernet8" "id" "3"
+    redis-cli -n 14 HMSET "PORT_TABLE:Ethernet12" "id" "4"
+
 fi
 
 # ADD PORT_TABLE:CPU in APPL_STATE_DB.

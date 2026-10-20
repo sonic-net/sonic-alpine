@@ -248,7 +248,7 @@ You can get the pre-built AlpineVS-lite image in one of the following ways:
 
 1. **Run the download script**
 
-On a Linux system, run the [image download script](https://github.com/sonic-net/sonic-alpine/blob/master/utils/get_official_build.sh)
+On a Linux system, run the [image download script](https://github.com/sonic-net/sonic-alpine/blob/master/utils/get_official_avslite_image.sh)
 ```
 sudo apt install jq (if not already present)
 get_official_build.sh
@@ -263,7 +263,7 @@ Download from the [AlpineVS official build](https://sonic-build.azurewebsites.ne
 Extract the downloaded image archive and load the image into the Docker and KNE cluster:
 ```
 docker load -i target/docker-sonic-alpinevs.gz
-kind load docker-image alpine-vs:latest --name kne
+kind load docker-image docker-alpine-vs:latest --name kne
 ```
 Then follow the steps in the [Deploy](#deploy-avs-lite) section
 
