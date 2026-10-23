@@ -11,6 +11,31 @@ The Alpine Virtual Switch-lite (AVS-lite) is a lightweight version of the AVS. I
 
 ## Alpine Virtual Switch
 
+### Patched diagnostic CLI
+
+Alpine packages `lemctl` from its pinned Lemming source and installs it in
+`docker-sonic-alpinevs`. The standalone `lemctl_*.deb` is also included in the
+existing `alpine-debs` CI artifacts and `latest-builds` release.
+Build it with `(cd src/lemctl && dpkg-buildpackage -us -uc -b)` after initializing
+submodules and installing its Debian build dependencies. Go downloads the
+toolchain required by the pinned source's `go.mod`.
+The package includes generated dependency and Go toolchain notices in
+`/usr/share/lemctl/THIRD_PARTY_NOTICES`, outside the documentation directory
+pruned by SONiC's container cleanup.
+Missing license texts fail the build.
+
+The temporary patch in `src/lemctl/patches` tracks
+[Lemming PR #754](https://github.com/openconfig/lemming/pull/754). Remove it when
+the Lemming pin contains that change; it intentionally fails to apply if the
+source no longer matches. Builds patch a private source copy, not the shared
+Lemming submodule.
+
+Use verified TLS for remote endpoints, optionally with `--tls_ca_cert`.
+`--tls_skip_verify` is rejected. Plaintext is available only for literal loopback
+addresses, for example from inside a single-container Alpine:
+`lemctl lucius --insecure --address 127.0.0.1:50000 info list`.
+This does not change the separate SAI runtime transport or enable TLS on Lucius.
+
 ### Build AVS
 1. Clone the SONiC repo:
 ```
@@ -266,4 +291,3 @@ docker load -i target/docker-sonic-alpinevs.gz
 kind load docker-image docker-alpine-vs:latest --name kne
 ```
 Then follow the steps in the [Deploy](#deploy-avs-lite) section
-

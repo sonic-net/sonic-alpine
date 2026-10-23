@@ -1,0 +1,11 @@
+/build/
+/lemctl
+/THIRD_PARTY_NOTICES
+/__pycache__/
+/tests/__pycache__/
+/package-test/
+/debian/.debhelper/
+/debian/debhelper-build-stamp
+/debian/files
+/debian/lemctl/
+/debian/*.substvars

@@ -1,0 +1,6 @@
+lemctl (1.0-1) unstable; urgency=medium
+
+  * Package the pinned Lemming diagnostic CLI with verified remote TLS
+    and loopback-only plaintext connections.
+
+ -- Baiju Parameswaran <baijup@microsoft.com>  Thu, 22 Oct 2026 14:33:41 +0000

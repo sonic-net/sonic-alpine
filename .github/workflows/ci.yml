@@ -78,10 +78,42 @@ jobs:
           **/lucius-libsai_*.deb
           **/lucius-pkt_handler_*.deb
 
+  build-lemctl:
+    name: Build and test patched lemctl
+    runs-on: ubuntu-22.04
+    container: debian:trixie
+    steps:
+      - name: Install package build tools
+        run: |
+          apt-get update
+          apt-get install -y git ca-certificates debhelper golang-any patch build-essential python3
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build and verify package
+        run: |
+          cd src/lemctl
+          dpkg-buildpackage -us -uc -b -tc
+          dpkg-deb -x ../lemctl_1.0-1_amd64.deb package-test
+          ./tests/test-binary.sh ./package-test/usr/bin/lemctl
+          grep -F "Go toolchain" package-test/usr/share/lemctl/THIRD_PARTY_NOTICES
+          grep -F "github.com/spf13/viper" package-test/usr/share/lemctl/THIRD_PARTY_NOTICES
+          git -C ../libsai-grpc/lemming diff --exit-code
+      - name: Verify installed package
+        run: |
+          apt-get install -y ./src/lemctl_1.0-1_amd64.deb
+          src/lemctl/tests/test-binary.sh /usr/bin/lemctl
+          grep -F "Go toolchain" /usr/share/lemctl/THIRD_PARTY_NOTICES
+      - uses: actions/upload-artifact@v4
+        with:
+          name: alpine-lemctl-debs
+          path: src/lemctl_*.deb
+          if-no-files-found: error
+
   # Combine all artifacts into a single downloadable zip
   merge-artifacts:
     name: Merge All Packages into One Zip
-    needs: [build-alpine, build-libsai]
+    needs: [build-alpine, build-libsai, build-lemctl]
     runs-on: ubuntu-22.04
     permissions:
       contents: write # Required to publish a GitHub Release
