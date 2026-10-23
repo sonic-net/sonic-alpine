@@ -1,0 +1,22 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: lemming
+Source: https://github.com/openconfig/lemming
+
+Files: *
+Copyright: 2026 Microsoft Corporation
+License: Apache-2.0
+
+Files: build/*
+Copyright: Google LLC
+           2026 Microsoft Corporation
+License: Apache-2.0
+
+License: Apache-2.0
+ On Debian systems the full text of the Apache License, Version 2.0
+ can be found in /usr/share/common-licenses/Apache-2.0.
+
+Comment:
+ The executable also embeds third-party Go packages. Their copyright notices
+ and license texts, collected from the linked source packages and toolchain,
+ are installed in /usr/share/lemctl/THIRD_PARTY_NOTICES, outside the
+ documentation directory pruned by SONiC's container cleanup.

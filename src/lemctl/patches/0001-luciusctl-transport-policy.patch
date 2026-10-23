@@ -1,0 +1,812 @@
+Subject: [PATCH] Constrain diagnostic transport options in lemctl lucius
+Origin: https://github.com/openconfig/lemming/pull/754
+Upstream-Status: Submitted
+Source-Revision: f99127a2ed3e6c0ec06f29d875a55ec31674d6aa
+
+Temporary backport for SONiC's pinned Lemming source. Remove this patch when
+the Lemming submodule includes the upstream change. Preserve verified TLS
+remotely and restrict plaintext to literal loopback addresses.
+
+diff --git a/dataplane/docs/dataplanedebug.md b/dataplane/docs/dataplanedebug.md
+index 9168d7c..b77c1a0 100644
+--- a/dataplane/docs/dataplanedebug.md
++++ b/dataplane/docs/dataplanedebug.md
+@@ -9,6 +9,14 @@
+ 
+ The lemctl CLI contains useful tools for debugging Lemming and Lucius.
+ 
++Live `lemctl lucius info` and `lemctl lucius sai` queries verify TLS certificates
++by default. Use `--tls_ca_cert ca.pem` to add a private CA to system trust roots;
++`--tls_skip_verify` is no longer supported. Plaintext `--insecure` requires a
++literal loopback IP and port, such as `127.0.0.1:50000` or `[::1]:50000`, and
++connects directly without a proxy. Hostnames, remote IPs, resolver targets, Unix
++sockets and scoped IPv6 addresses are rejected for plaintext. `--tls_ca_cert`
++cannot be combined with `--insecure`.
++
+ To enable packet traces, the lucius containers must be logging at level 3 or
+ higher. Add the "-v=3" arg in the topology file for all lucius containers.
+ 
+diff --git a/dataplane/luciusctl/BUILD b/dataplane/luciusctl/BUILD
+index 502105d..fed91dd 100644
+--- a/dataplane/luciusctl/BUILD
++++ b/dataplane/luciusctl/BUILD
+@@ -1,4 +1,4 @@
+-load("@io_bazel_rules_go//go:def.bzl", "go_library")
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+ 
+ go_library(
+     name = "luciusctl",
+@@ -12,3 +12,20 @@ go_library(
+         "@com_github_spf13_viper//:viper",
+     ],
+ )
++
++go_test(
++    name = "luciusctl_test",
++    size = "small",
++    srcs = ["luciusctl_test.go"],
++    embed = [":luciusctl"],
++    deps = [
++        "//dataplane/proto/sai",
++        "//proto/forwarding",
++        "@com_github_spf13_cobra//:cobra",
++        "@com_github_spf13_viper//:viper",
++        "@org_golang_google_grpc//:grpc",
++        "@org_golang_google_grpc//credentials",
++        "@org_golang_google_grpc//peer",
++        "@org_golang_google_grpc//reflection",
++    ],
++)
+diff --git a/dataplane/luciusctl/info/BUILD b/dataplane/luciusctl/info/BUILD
+index 8ccecc7..6d6e32a 100644
+--- a/dataplane/luciusctl/info/BUILD
++++ b/dataplane/luciusctl/info/BUILD
+@@ -6,11 +6,8 @@ go_library(
+     importpath = "github.com/openconfig/lemming/dataplane/luciusctl/info",
+     visibility = ["//visibility:public"],
+     deps = [
++        "//dataplane/luciusctl/internal/transport",
+         "//proto/forwarding",
+         "@com_github_spf13_cobra//:cobra",
+-        "@com_github_spf13_viper//:viper",
+-        "@org_golang_google_grpc//:grpc",
+-        "@org_golang_google_grpc//credentials",
+-        "@org_golang_google_grpc//credentials/insecure",
+     ],
+ )
+diff --git a/dataplane/luciusctl/info/info.go b/dataplane/luciusctl/info/info.go
+index 5efa9dc..34ffc23 100644
+--- a/dataplane/luciusctl/info/info.go
++++ b/dataplane/luciusctl/info/info.go
+@@ -16,15 +16,12 @@ package info
+ 
+ import (
+ 	"context"
+-	"crypto/tls"
+ 	"encoding/hex"
+ 	"fmt"
+ 
+ 	"github.com/spf13/cobra"
+-	"github.com/spf13/viper"
+-	"google.golang.org/grpc"
+-	"google.golang.org/grpc/credentials"
+-	"google.golang.org/grpc/credentials/insecure"
++
++	"github.com/openconfig/lemming/dataplane/luciusctl/internal/transport"
+ 
+ 	fwdpb "github.com/openconfig/lemming/proto/forwarding"
+ )
+@@ -73,7 +70,7 @@ func New() *cobra.Command {
+ }
+ 
+ func listFn(cmd *cobra.Command, _ []string) error {
+-	conn, err := dial()
++	conn, err := transport.Dial()
+ 	if err != nil {
+ 		return fmt.Errorf("failed to dial dataplane: %v", err)
+ 	}
+@@ -92,7 +89,7 @@ func listFn(cmd *cobra.Command, _ []string) error {
+ }
+ 
+ func infoElement(ctx context.Context, name string, infoType fwdpb.InfoType, packet string) error {
+-	conn, err := dial()
++	conn, err := transport.Dial()
+ 	if err != nil {
+ 		return fmt.Errorf("failed to dial dataplane: %v", err)
+ 	}
+@@ -116,18 +113,3 @@ func infoElement(ctx context.Context, name string, infoType fwdpb.InfoType, pack
+ 	fmt.Println(resp.GetContent())
+ 	return nil
+ }
+-
+-func dial() (*grpc.ClientConn, error) {
+-	insec, tlsSkipVerify := viper.GetBool("insecure"), viper.GetBool("tls_skip_verify")
+-	if insec && tlsSkipVerify {
+-		return nil, fmt.Errorf("both insecure and tls skip verify are set")
+-	}
+-	opts := grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{
+-		InsecureSkipVerify: tlsSkipVerify, // nolint:gosec
+-	}))
+-	if insec {
+-		opts = grpc.WithTransportCredentials(insecure.NewCredentials())
+-	}
+-
+-	return grpc.NewClient(viper.GetString("address"), opts)
+-}
+diff --git a/dataplane/luciusctl/internal/transport/BUILD b/dataplane/luciusctl/internal/transport/BUILD
+new file mode 100644
+index 0000000..eb809b2
+--- /dev/null
++++ b/dataplane/luciusctl/internal/transport/BUILD
+@@ -0,0 +1,22 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "transport",
++    srcs = ["transport.go"],
++    importpath = "github.com/openconfig/lemming/dataplane/luciusctl/internal/transport",
++    visibility = ["//dataplane/luciusctl:__subpackages__"],
++    deps = [
++        "@com_github_spf13_viper//:viper",
++        "@org_golang_google_grpc//:grpc",
++        "@org_golang_google_grpc//credentials",
++        "@org_golang_google_grpc//credentials/insecure",
++    ],
++)
++
++go_test(
++    name = "transport_test",
++    size = "small",
++    srcs = ["transport_test.go"],
++    embed = [":transport"],
++    deps = ["@com_github_spf13_viper//:viper"],
++)
+diff --git a/dataplane/luciusctl/internal/transport/transport.go b/dataplane/luciusctl/internal/transport/transport.go
+new file mode 100644
+index 0000000..fba2b07
+--- /dev/null
++++ b/dataplane/luciusctl/internal/transport/transport.go
+@@ -0,0 +1,94 @@
++// Copyright 2026 Microsoft Corporation
++//
++// Licensed under the Apache License, Version 2.0 (the "License");
++// you may not use this file except in compliance with the License.
++// You may obtain a copy of the License at
++//
++//      http://www.apache.org/licenses/LICENSE-2.0
++//
++// Unless required by applicable law or agreed to in writing, software
++// distributed under the License is distributed on an "AS IS" BASIS,
++// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++// See the License for the specific language governing permissions and
++// limitations under the License.
++
++// Package transport provides verified TLS or local-only plaintext connections.
++package transport
++
++import (
++	"context"
++	"crypto/tls"
++	"crypto/x509"
++	"fmt"
++	"net"
++	"net/netip"
++	"os"
++	"strconv"
++
++	"github.com/spf13/viper"
++	"google.golang.org/grpc"
++	"google.golang.org/grpc/credentials"
++	"google.golang.org/grpc/credentials/insecure"
++)
++
++// Dial creates a channel using the configured diagnostic transport policy.
++func Dial() (*grpc.ClientConn, error) {
++	if viper.GetBool("tls_skip_verify") {
++		return nil, fmt.Errorf("--tls_skip_verify is no longer supported; use --tls_ca_cert to trust the server's CA")
++	}
++	address := viper.GetString("address")
++	if address == "" {
++		return nil, fmt.Errorf("--address is required")
++	}
++	caFile := viper.GetString("tls_ca_cert")
++	if viper.GetBool("insecure") {
++		if caFile != "" {
++			return nil, fmt.Errorf("--tls_ca_cert cannot be used with --insecure")
++		}
++		address, err := loopbackAddress(address)
++		if err != nil {
++			return nil, err
++		}
++		// Pin every connection to the validated IP, bypassing resolvers and proxies.
++		dialer := &net.Dialer{}
++		return grpc.NewClient("passthrough:///"+address,
++			grpc.WithTransportCredentials(insecure.NewCredentials()),
++			grpc.WithContextDialer(func(ctx context.Context, _ string) (net.Conn, error) {
++				return dialer.DialContext(ctx, "tcp", address)
++			}),
++		)
++	}
++
++	config := &tls.Config{MinVersion: tls.VersionTLS12}
++	if caFile != "" {
++		certs, err := os.ReadFile(caFile)
++		if err != nil {
++			return nil, fmt.Errorf("read --tls_ca_cert: %w", err)
++		}
++		roots, err := x509.SystemCertPool()
++		if err != nil {
++			return nil, fmt.Errorf("load system certificate roots: %w", err)
++		}
++		if !roots.AppendCertsFromPEM(certs) {
++			return nil, fmt.Errorf("--tls_ca_cert contains no valid PEM certificates")
++		}
++		config.RootCAs = roots
++	}
++	return grpc.NewClient(address, grpc.WithTransportCredentials(credentials.NewTLS(config)))
++}
++
++func loopbackAddress(address string) (string, error) {
++	host, port, err := net.SplitHostPort(address)
++	if err != nil {
++		return "", fmt.Errorf("--insecure requires a literal loopback IP and port: %w", err)
++	}
++	ip, err := netip.ParseAddr(host)
++	if err != nil || ip.Zone() != "" || !ip.Unmap().IsLoopback() {
++		return "", fmt.Errorf("--insecure requires a literal loopback IP; hostnames, remote IPs and resolver targets are not supported")
++	}
++	number, err := strconv.ParseUint(port, 10, 16)
++	if err != nil || number == 0 {
++		return "", fmt.Errorf("--insecure requires a port between 1 and 65535")
++	}
++	return net.JoinHostPort(ip.Unmap().String(), strconv.FormatUint(number, 10)), nil
++}
+diff --git a/dataplane/luciusctl/internal/transport/transport_test.go b/dataplane/luciusctl/internal/transport/transport_test.go
+new file mode 100644
+index 0000000..82a199e
+--- /dev/null
++++ b/dataplane/luciusctl/internal/transport/transport_test.go
+@@ -0,0 +1,115 @@
++// Copyright 2026 Microsoft Corporation
++//
++// Licensed under the Apache License, Version 2.0 (the "License");
++// you may not use this file except in compliance with the License.
++// You may obtain a copy of the License at
++//
++//      http://www.apache.org/licenses/LICENSE-2.0
++//
++// Unless required by applicable law or agreed to in writing, software
++// distributed under the License is distributed on an "AS IS" BASIS,
++// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++// See the License for the specific language governing permissions and
++// limitations under the License.
++
++package transport
++
++import (
++	"os"
++	"path/filepath"
++	"strings"
++	"testing"
++
++	"github.com/spf13/viper"
++)
++
++func TestLoopbackAddress(t *testing.T) {
++	tests := []struct {
++		address string
++		want    string
++	}{
++		{address: "127.0.0.1:50000", want: "127.0.0.1:50000"},
++		{address: "127.255.255.254:1", want: "127.255.255.254:1"},
++		{address: "[::1]:65535", want: "[::1]:65535"},
++		{address: "[0:0:0:0:0:0:0:1]:05000", want: "[::1]:5000"},
++		{address: "[::ffff:127.0.0.1]:50000", want: "127.0.0.1:50000"},
++		{address: "localhost:50000"},
++		{address: "localhost.:50000"},
++		{address: "127.0.0.1.example:50000"},
++		{address: "192.0.2.1:50000"},
++		{address: "10.0.0.1:50000"},
++		{address: "0.0.0.0:50000"},
++		{address: "[::]:50000"},
++		{address: "[2001:db8::1]:50000"},
++		{address: "[::ffff:192.0.2.1]:50000"},
++		{address: "[::1%lo]:50000"},
++		{address: "dns:///127.0.0.1:50000"},
++		{address: "passthrough:///127.0.0.1:50000"},
++		{address: "unix:///tmp/lucius.sock"},
++		{address: "http://127.0.0.1:50000"},
++		{address: "127.1:50000"},
++		{address: "2130706433:50000"},
++		{address: "0177.0.0.1:50000"},
++		{address: "127.0.0.1"},
++		{address: "::1:50000"},
++		{address: "127.0.0.1:0"},
++		{address: "127.0.0.1:65536"},
++		{address: "127.0.0.1:http"},
++		{address: "127.0.0.1:+1"},
++		{address: "127.0.0.1:-1"},
++		{address: "127.0.0.1:"},
++		{address: ""},
++	}
++	for _, test := range tests {
++		t.Run(test.address, func(t *testing.T) {
++			got, err := loopbackAddress(test.address)
++			if test.want == "" {
++				if err == nil {
++					t.Fatalf("accepted prohibited plaintext target %q as %q", test.address, got)
++				}
++				return
++			}
++			if err != nil || got != test.want {
++				t.Fatalf("loopbackAddress(%q) = %q, %v; want %q", test.address, got, err, test.want)
++			}
++		})
++	}
++}
++
++func TestDialConfigurationErrors(t *testing.T) {
++	dir := t.TempDir()
++	invalidCA := filepath.Join(dir, "invalid.pem")
++	if err := os.WriteFile(invalidCA, []byte("not a certificate"), 0600); err != nil {
++		t.Fatal(err)
++	}
++	tests := []struct {
++		name    string
++		values  map[string]any
++		wantErr string
++	}{
++		{name: "missing-address", wantErr: "--address is required"},
++		{name: "legacy-bypass", values: map[string]any{"tls_skip_verify": true}, wantErr: "no longer supported"},
++		{name: "both-options", values: map[string]any{"tls_skip_verify": true, "insecure": true}, wantErr: "no longer supported"},
++		{name: "remote-plaintext", values: map[string]any{"address": "192.0.2.1:50000", "insecure": true}, wantErr: "literal loopback"},
++		{name: "ca-with-plaintext", values: map[string]any{"address": "127.0.0.1:50000", "insecure": true, "tls_ca_cert": invalidCA}, wantErr: "cannot be used"},
++		{name: "missing-ca", values: map[string]any{"address": "dataplane.example:50000", "tls_ca_cert": filepath.Join(dir, "missing.pem")}, wantErr: "read --tls_ca_cert"},
++		{name: "invalid-ca", values: map[string]any{"address": "dataplane.example:50000", "tls_ca_cert": invalidCA}, wantErr: "no valid PEM certificates"},
++	}
++	for _, test := range tests {
++		t.Run(test.name, func(t *testing.T) {
++			viper.Reset()
++			t.Cleanup(viper.Reset)
++			for key, value := range test.values {
++				viper.Set(key, value)
++			}
++			conn, err := Dial()
++			if conn != nil {
++				conn.Close()
++				t.Fatal("invalid configuration created a connection")
++			}
++			if err == nil || !strings.Contains(err.Error(), test.wantErr) {
++				t.Fatalf("Dial() error = %v; want %q", err, test.wantErr)
++			}
++		})
++	}
++}
+diff --git a/dataplane/luciusctl/luciusctl.go b/dataplane/luciusctl/luciusctl.go
+index 1263df0..824b4b3 100644
+--- a/dataplane/luciusctl/luciusctl.go
++++ b/dataplane/luciusctl/luciusctl.go
+@@ -28,8 +28,9 @@ func New() *cobra.Command {
+ 		Short: "lucius queries info from a running instance of lucius.",
+ 	}
+ 	cmd.PersistentFlags().StringP("address", "a", "", "Address of dataplane server")
+-	cmd.PersistentFlags().Bool("insecure", false, "Use plaintext to dial server")
+-	cmd.PersistentFlags().Bool("tls_skip_verify", false, "Use TLS without cert verification")
++	cmd.PersistentFlags().Bool("insecure", false, "Use plaintext only for a literal loopback IP and port")
++	cmd.PersistentFlags().Bool("tls_skip_verify", false, "Unsupported: use --tls_ca_cert instead")
++	cmd.PersistentFlags().String("tls_ca_cert", "", "PEM CA bundle to trust in addition to system certificate roots")
+ 
+ 	cobra.OnInitialize(func() { viper.BindPFlags(cmd.Flags()) })
+ 	viper.BindPFlags(cmd.Flags())
+diff --git a/dataplane/luciusctl/luciusctl_test.go b/dataplane/luciusctl/luciusctl_test.go
+new file mode 100644
+index 0000000..3f4c144
+--- /dev/null
++++ b/dataplane/luciusctl/luciusctl_test.go
+@@ -0,0 +1,324 @@
++// Copyright 2026 Microsoft Corporation
++//
++// Licensed under the Apache License, Version 2.0 (the "License");
++// you may not use this file except in compliance with the License.
++// You may obtain a copy of the License at
++//
++//      http://www.apache.org/licenses/LICENSE-2.0
++//
++// Unless required by applicable law or agreed to in writing, software
++// distributed under the License is distributed on an "AS IS" BASIS,
++// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++// See the License for the specific language governing permissions and
++// limitations under the License.
++
++package luciusctl
++
++import (
++	"context"
++	"crypto/ecdsa"
++	"crypto/elliptic"
++	"crypto/rand"
++	"crypto/tls"
++	"crypto/x509"
++	"crypto/x509/pkix"
++	"encoding/pem"
++	"io"
++	"math/big"
++	"net"
++	"os"
++	"path/filepath"
++	"slices"
++	"strings"
++	"sync/atomic"
++	"testing"
++	"time"
++
++	"github.com/spf13/cobra"
++	"github.com/spf13/viper"
++	"google.golang.org/grpc"
++	"google.golang.org/grpc/credentials"
++	"google.golang.org/grpc/peer"
++	"google.golang.org/grpc/reflection"
++
++	saipb "github.com/openconfig/lemming/dataplane/proto/sai"
++	fwdpb "github.com/openconfig/lemming/proto/forwarding"
++)
++
++type diagnosticServer struct {
++	fwdpb.UnimplementedInfoServer
++	saipb.UnimplementedSwitchServer
++	calls    atomic.Int32
++	tlsCalls atomic.Int32
++	streams  atomic.Int32
++}
++
++func (s *diagnosticServer) record(ctx context.Context) {
++	s.calls.Add(1)
++	if p, ok := peer.FromContext(ctx); ok {
++		if _, ok := p.AuthInfo.(credentials.TLSInfo); ok {
++			s.tlsCalls.Add(1)
++		}
++	}
++}
++
++func (s *diagnosticServer) InfoList(ctx context.Context, _ *fwdpb.InfoListRequest) (*fwdpb.InfoListReply, error) {
++	s.record(ctx)
++	return &fwdpb.InfoListReply{Names: []string{"synthetic-object"}}, nil
++}
++
++func (s *diagnosticServer) InfoElement(ctx context.Context, _ *fwdpb.InfoElementRequest) (*fwdpb.InfoElementReply, error) {
++	s.record(ctx)
++	return &fwdpb.InfoElementReply{Content: "synthetic-content"}, nil
++}
++
++func (s *diagnosticServer) GetSwitchAttribute(ctx context.Context, _ *saipb.GetSwitchAttributeRequest) (*saipb.GetSwitchAttributeResponse, error) {
++	s.record(ctx)
++	return &saipb.GetSwitchAttributeResponse{}, nil
++}
++
++func serveDiagnostics(t *testing.T, host string, cert *tls.Certificate) (string, *diagnosticServer) {
++	t.Helper()
++	listener, err := net.Listen("tcp", net.JoinHostPort(host, "0"))
++	if err != nil {
++		t.Fatal(err)
++	}
++	service := &diagnosticServer{}
++	opts := []grpc.ServerOption{grpc.StreamInterceptor(func(srv any, stream grpc.ServerStream, _ *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
++		service.streams.Add(1)
++		return handler(srv, stream)
++	})}
++	if cert != nil {
++		opts = append(opts, grpc.Creds(credentials.NewTLS(&tls.Config{
++			Certificates: []tls.Certificate{*cert},
++			MinVersion:   tls.VersionTLS12,
++		})))
++	}
++	server := grpc.NewServer(opts...)
++	fwdpb.RegisterInfoServer(server, service)
++	saipb.RegisterSwitchServer(server, service)
++	reflection.Register(server)
++	done := make(chan error, 1)
++	go func() { done <- server.Serve(listener) }()
++	t.Cleanup(func() {
++		server.Stop()
++		if err := <-done; err != nil && err != grpc.ErrServerStopped {
++			t.Errorf("test server: %v", err)
++		}
++	})
++	return listener.Addr().String(), service
++}
++
++func diagnosticCertificates(t *testing.T) (string, map[string]tls.Certificate) {
++	t.Helper()
++	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
++	if err != nil {
++		t.Fatal(err)
++	}
++	now := time.Now()
++	root := &x509.Certificate{
++		SerialNumber: big.NewInt(1), Subject: pkix.Name{CommonName: "Disposable diagnostic test CA"},
++		NotBefore: now.Add(-48 * time.Hour), NotAfter: now.Add(24 * time.Hour),
++		IsCA: true, BasicConstraintsValid: true, KeyUsage: x509.KeyUsageCertSign,
++	}
++	der, err := x509.CreateCertificate(rand.Reader, root, root, &key.PublicKey, key)
++	if err != nil {
++		t.Fatal(err)
++	}
++	caFile := filepath.Join(t.TempDir(), "ca.pem")
++	if err := os.WriteFile(caFile, pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der}), 0600); err != nil {
++		t.Fatal(err)
++	}
++	certs := make(map[string]tls.Certificate)
++	for index, name := range []string{"valid", "self-signed", "expired", "wrong-name"} {
++		leafKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
++		if err != nil {
++			t.Fatal(err)
++		}
++		leaf := &x509.Certificate{
++			SerialNumber: big.NewInt(int64(index + 2)),
++			NotBefore:    now.Add(-time.Hour), NotAfter: now.Add(time.Hour),
++			ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
++			KeyUsage:    x509.KeyUsageDigitalSignature,
++			IPAddresses: []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("::1")},
++		}
++		parent, signer := root, key
++		switch name {
++		case "self-signed":
++			parent, signer = leaf, leafKey
++		case "expired":
++			leaf.NotBefore, leaf.NotAfter = now.Add(-24*time.Hour), now.Add(-time.Hour)
++		case "wrong-name":
++			leaf.IPAddresses = nil
++			leaf.DNSNames = []string{"wrong-name.invalid"}
++		}
++		der, err := x509.CreateCertificate(rand.Reader, leaf, parent, &leafKey.PublicKey, signer)
++		if err != nil {
++			t.Fatal(err)
++		}
++		certs[name] = tls.Certificate{Certificate: [][]byte{der}, PrivateKey: leafKey}
++	}
++	return caFile, certs
++}
++
++func TestDiagnosticTransports(t *testing.T) {
++	caFile, certs := diagnosticCertificates(t)
++	tests := []struct {
++		name    string
++		cert    string
++		flags   []string
++		target  string
++		wantErr string
++	}{
++		{name: "trusted-tls", cert: "valid", flags: []string{"--tls_ca_cert", caFile}},
++		{name: "resolver-trusted-tls", cert: "valid", flags: []string{"--tls_ca_cert", caFile}, target: "dns:///"},
++		{name: "unknown-ca", cert: "valid", wantErr: "certificate signed by unknown authority"},
++		{name: "self-signed", cert: "self-signed", flags: []string{"--tls_ca_cert", caFile}, wantErr: "certificate signed by unknown authority"},
++		{name: "expired", cert: "expired", flags: []string{"--tls_ca_cert", caFile}, wantErr: "certificate has expired"},
++		{name: "wrong-name", cert: "wrong-name", flags: []string{"--tls_ca_cert", caFile}, wantErr: "IP SANs"},
++		{name: "self-signed-bypass-rejected", cert: "self-signed", flags: []string{"--tls_skip_verify"}, wantErr: "no longer supported"},
++		{name: "expired-bypass-rejected", cert: "expired", flags: []string{"--tls_skip_verify"}, wantErr: "no longer supported"},
++		{name: "wrong-name-bypass-rejected", cert: "wrong-name", flags: []string{"--tls_skip_verify"}, wantErr: "no longer supported"},
++		{name: "loopback-plaintext", flags: []string{"--insecure"}},
++		{name: "plaintext-with-default-tls", wantErr: "TLS handshake"},
++		{name: "both-options", flags: []string{"--insecure", "--tls_skip_verify"}, wantErr: "no longer supported"},
++		{name: "resolver-plaintext", flags: []string{"--insecure"}, target: "dns:///", wantErr: "literal loopback"},
++		{name: "hostname-plaintext", flags: []string{"--insecure"}, target: "localhost", wantErr: "literal loopback"},
++		{name: "remote-plaintext", flags: []string{"--insecure"}, target: "192.0.2.1", wantErr: "literal loopback"},
++		{name: "ca-with-plaintext", flags: []string{"--insecure", "--tls_ca_cert", caFile}, wantErr: "cannot be used"},
++	}
++	commands := [][]string{
++		{"info", "list"},
++		{"info", "get", "synthetic-object"},
++		{"info", "lookup", "synthetic-object", "00"},
++		{"info", "port-input", "synthetic-object", "00"},
++		{"info", "port-output", "synthetic-object", "00"},
++		{"sai", "get-attr", "switch", "1", "cpu_port"},
++	}
++	for _, command := range commands {
++		for _, test := range tests {
++			t.Run(strings.Join(command[:2], "-")+"/"+test.name, func(t *testing.T) {
++				viper.Reset()
++				t.Cleanup(viper.Reset)
++				var cert *tls.Certificate
++				if test.cert != "" {
++					value := certs[test.cert]
++					cert = &value
++				}
++				address, server := serveDiagnostics(t, "127.0.0.1", cert)
++				switch test.target {
++				case "dns:///":
++					address = test.target + address
++				case "localhost", "192.0.2.1":
++					_, port, err := net.SplitHostPort(address)
++					if err != nil {
++						t.Fatal(err)
++					}
++					address = net.JoinHostPort(test.target, port)
++				}
++				cmd := New()
++				cmd.SilenceUsage, cmd.SilenceErrors = true, true
++				cmd.SetOut(io.Discard)
++				cmd.SetErr(io.Discard)
++				args := append([]string{"--address", address}, test.flags...)
++				cmd.SetArgs(append(args, command...))
++				ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
++				defer cancel()
++				err := cmd.ExecuteContext(ctx)
++				if test.wantErr != "" {
++					if err == nil || !strings.Contains(err.Error(), test.wantErr) || server.calls.Load() != 0 || server.streams.Load() != 0 {
++						t.Fatalf("expected %q before RPC; err=%v calls=%d streams=%d", test.wantErr, err, server.calls.Load(), server.streams.Load())
++					}
++
++					return
++				}
++				if err != nil || server.calls.Load() != 1 {
++					t.Fatalf("expected completed diagnostic RPC; err=%v calls=%d", err, server.calls.Load())
++				}
++				wantTLS := int32(0)
++				if test.cert != "" {
++					wantTLS = 1
++				}
++				if server.tlsCalls.Load() != wantTLS {
++					t.Fatalf("TLS RPC count = %d, want %d", server.tlsCalls.Load(), wantTLS)
++				}
++			})
++		}
++	}
++}
++
++func TestLoopbackPlaintextBypassesProxy(t *testing.T) {
++	for _, host := range []string{"127.0.0.1", "::1"} {
++		t.Run(host, func(t *testing.T) {
++			viper.Reset()
++			t.Cleanup(viper.Reset)
++			address, server := serveDiagnostics(t, host, nil)
++			proxy, err := net.Listen("tcp", "127.0.0.1:0")
++			if err != nil {
++				t.Fatal(err)
++			}
++			t.Cleanup(func() { proxy.Close() })
++			t.Setenv("HTTPS_PROXY", "http://"+proxy.Addr().String())
++			t.Setenv("NO_PROXY", "")
++			viper.Set("address", address)
++			viper.Set("insecure", true)
++			cmd := New()
++			cmd.SetArgs([]string{"info", "list"})
++			ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
++			defer cancel()
++			if err := cmd.ExecuteContext(ctx); err != nil || server.calls.Load() != 1 {
++				t.Fatalf("direct local RPC failed: err=%v calls=%d", err, server.calls.Load())
++			}
++			if err := proxy.(*net.TCPListener).SetDeadline(time.Now().Add(20 * time.Millisecond)); err != nil {
++				t.Fatal(err)
++			}
++			conn, err := proxy.Accept()
++			if err == nil {
++				conn.Close()
++				t.Fatal("plaintext connection reached proxy")
++			}
++			if err, ok := err.(net.Error); !ok || !err.Timeout() {
++				t.Fatalf("unexpected proxy listener error: %v", err)
++			}
++		})
++	}
++}
++
++func TestSAICompletionTransportPolicy(t *testing.T) {
++	tests := []struct {
++		name       string
++		target     string
++		skipVerify bool
++		wantError  bool
++	}{
++		{name: "local-plaintext"},
++		{name: "legacy-bypass", skipVerify: true, wantError: true},
++		{name: "remote-plaintext", target: "192.0.2.1:50000", wantError: true},
++		{name: "resolver-plaintext", target: "dns:///127.0.0.1:50000", wantError: true},
++	}
++	for _, test := range tests {
++		t.Run(test.name, func(t *testing.T) {
++			viper.Reset()
++			t.Cleanup(viper.Reset)
++			address, server := serveDiagnostics(t, "127.0.0.1", nil)
++			if test.target != "" {
++				address = test.target
++			}
++			viper.Set("address", address)
++			viper.Set("insecure", true)
++			viper.Set("tls_skip_verify", test.skipVerify)
++			cmd, _, err := New().Find([]string{"sai", "get-attr"})
++			if err != nil {
++				t.Fatal(err)
++			}
++			values, directive := cmd.ValidArgsFunction(cmd, nil, "")
++			if test.wantError {
++				if directive&cobra.ShellCompDirectiveError == 0 || server.streams.Load() != 0 {
++					t.Fatalf("expected completion error before reflection; directive=%v streams=%d", directive, server.streams.Load())
++				}
++			} else if directive&cobra.ShellCompDirectiveError != 0 || !slices.Contains(values, "switch") || server.streams.Load() != 1 {
++				t.Fatalf("local completion failed: values=%v directive=%v streams=%d", values, directive, server.streams.Load())
++			}
++		})
++	}
++}
+diff --git a/dataplane/luciusctl/sai/BUILD b/dataplane/luciusctl/sai/BUILD
+index 6275ad7..ebc4f34 100644
+--- a/dataplane/luciusctl/sai/BUILD
++++ b/dataplane/luciusctl/sai/BUILD
+@@ -9,11 +9,8 @@ go_library(
+     importpath = "github.com/openconfig/lemming/dataplane/luciusctl/sai",
+     visibility = ["//visibility:public"],
+     deps = [
++        "//dataplane/luciusctl/internal/transport",
+         "@com_github_spf13_cobra//:cobra",
+-        "@com_github_spf13_viper//:viper",
+-        "@org_golang_google_grpc//:grpc",
+-        "@org_golang_google_grpc//credentials",
+-        "@org_golang_google_grpc//credentials/insecure",
+         "@org_golang_google_grpc//reflection/grpc_reflection_v1",
+         "@org_golang_google_protobuf//encoding/prototext",
+         "@org_golang_google_protobuf//proto",
+diff --git a/dataplane/luciusctl/sai/sai.go b/dataplane/luciusctl/sai/sai.go
+index a19ed39..655edee 100644
+--- a/dataplane/luciusctl/sai/sai.go
++++ b/dataplane/luciusctl/sai/sai.go
+@@ -15,21 +15,18 @@
+ package sai
+ 
+ import (
+-	"crypto/tls"
+ 	"fmt"
+ 	"slices"
+ 	"strconv"
+ 	"strings"
+ 
+ 	"github.com/spf13/cobra"
+-	"github.com/spf13/viper"
+-	"google.golang.org/grpc"
+-	"google.golang.org/grpc/credentials"
+-	"google.golang.org/grpc/credentials/insecure"
+ 	reflectpb "google.golang.org/grpc/reflection/grpc_reflection_v1"
+ 	"google.golang.org/protobuf/encoding/prototext"
+ 	"google.golang.org/protobuf/reflect/protoreflect"
+ 	"google.golang.org/protobuf/types/dynamicpb"
++
++	"github.com/openconfig/lemming/dataplane/luciusctl/internal/transport"
+ )
+ 
+ func New() *cobra.Command {
+@@ -50,7 +47,7 @@ Examples:
+ `,
+ 		Aliases: []string{"get-attr"},
+ 		RunE: func(cmd *cobra.Command, args []string) error {
+-			conn, err := dial()
++			conn, err := transport.Dial()
+ 			if err != nil {
+ 				return err
+ 			}
+@@ -89,7 +86,7 @@ Examples:
+ 			return nil
+ 		},
+ 		ValidArgsFunction: func(_ *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+-			conn, err := dial()
++			conn, err := transport.Dial()
+ 			if err != nil {
+ 				return nil, cobra.ShellCompDirectiveError
+ 			}
+@@ -128,18 +125,3 @@ func keyPrefixMatch[T any](method map[string]T, prefix string) []string {
+ 	slices.Sort(matches)
+ 	return matches
+ }
+-
+-func dial() (*grpc.ClientConn, error) {
+-	insec, tlsSkipVerify := viper.GetBool("insecure"), viper.GetBool("tls_skip_verify")
+-	if insec && tlsSkipVerify {
+-		return nil, fmt.Errorf("both insecure and tls skip verify are set")
+-	}
+-	opts := grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{
+-		InsecureSkipVerify: tlsSkipVerify, // nolint:gosec
+-	}))
+-	if insec {
+-		opts = grpc.WithTransportCredentials(insecure.NewCredentials())
+-	}
+-
+-	return grpc.NewClient(viper.GetString("address"), opts)
+-}

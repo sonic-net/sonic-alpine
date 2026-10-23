@@ -3,6 +3,7 @@ include $(PLATFORM_PATH)/sonic-version.mk
 include $(PLATFORM_PATH)/docker-syncd-vs.mk
 include $(PLATFORM_PATH)/docker-sonic-alpinevs.mk
 include $(PLATFORM_PATH)/lemmingsai.mk
+include $(PLATFORM_PATH)/lemctl.mk
 include $(PLATFORM_PATH)/pkt-handler.mk
 include $(PLATFORM_PATH)/alpine-init.mk
 include $(PLATFORM_PATH)/alpine-device.mk

@@ -1,0 +1,16 @@
+Source: lemctl
+Section: net
+Priority: optional
+Maintainer: Baiju Parameswaran <baijup@microsoft.com>
+Build-Depends: debhelper-compat (= 13), golang-any | golang-1.26-go, git, patch, ca-certificates, python3
+Standards-Version: 4.6.2
+Rules-Requires-Root: no
+Homepage: https://github.com/openconfig/lemming
+
+Package: lemctl
+Architecture: amd64 arm64
+Depends: ${misc:Depends}, ${shlibs:Depends}, ca-certificates
+Description: Lemming diagnostic command line tool for AlpineVS
+ Queries Lucius forwarding information and SAI attributes.
+ Remote connections verify TLS certificates; plaintext is restricted
+ to literal loopback IP addresses.

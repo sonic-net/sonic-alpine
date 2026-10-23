@@ -12,3 +12,4 @@ include $(PLATFORM_PATH)/alpine-init.dep
 include $(PLATFORM_PATH)/alpine-device.dep
 include $(PLATFORM_PATH)/pkt-handler.dep
 include $(PLATFORM_PATH)/lemmingsai.dep
+include $(PLATFORM_PATH)/lemctl.dep
