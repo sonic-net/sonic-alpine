@@ -4,5 +4,8 @@ set -euo pipefail
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 source "$SCRIPT_DIR/image_utils.sh"
 
+parse_build_option "$@"
+
 download_official_artifact_archive \
-    "sonic-buildimage.alpinevs-{build_id}.zip"
+    "sonic-buildimage.alpinevs-{build_id}.zip" \
+    "$BUILD_ID"
