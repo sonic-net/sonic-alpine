@@ -10,6 +10,49 @@ DEFINITION_ID="${DEFINITION_ID:-1}"
 BRANCH="${BRANCH:-master}"
 ARTIFACT="${ARTIFACT:-sonic-buildimage.alpinevs}"
 MAX_BUILDS="${MAX_BUILDS:-50}"
+BUILD_ID=""
+
+usage() {
+    echo "Usage: $(basename -- "$0") [-b buildno]" >&2
+}
+
+parse_build_option() {
+    local option
+
+    OPTIND=1
+    while getopts ":b:h" option; do
+        case "$option" in
+            b)
+                BUILD_ID="$OPTARG"
+                ;;
+            h)
+                usage
+                exit 0
+                ;;
+            :)
+                echo "Error: option -$OPTARG requires an argument." >&2
+                usage
+                exit 2
+                ;;
+            \?)
+                echo "Error: unknown option -$OPTARG." >&2
+                usage
+                exit 2
+                ;;
+        esac
+    done
+    shift $((OPTIND - 1))
+
+    if (($# != 0)); then
+        echo "Error: unexpected argument '$1'." >&2
+        usage
+        exit 2
+    fi
+    if [[ -n "$BUILD_ID" && ! "$BUILD_ID" =~ ^[0-9]+$ ]]; then
+        echo "Error: build number must contain only digits: $BUILD_ID" >&2
+        exit 2
+    fi
+}
 
 _require_image_commands() {
     local command
@@ -48,6 +91,51 @@ import sys
 for build in json.load(sys.stdin).get("value", []):
     print(build["id"])
 ' <<<"$builds_json"
+}
+
+_validate_requested_build_id() {
+    local build_id="$1"
+    local build_json
+
+    if ! build_json=$(
+        curl -sSL \
+            --connect-timeout 30 \
+            --max-time 120 \
+            "$BUILD_API/builds/$build_id?api-version=7.1"
+    ); then
+        echo "Error: could not query build ID $build_id." >&2
+        return 1
+    fi
+
+    if ! python3 -c '
+import json
+import sys
+
+build = json.load(sys.stdin)
+expected_definition = int(sys.argv[1])
+expected_branch = "refs/heads/" + sys.argv[2]
+sys.exit(
+    0
+    if build.get("id") == int(sys.argv[3])
+    and build.get("definition", {}).get("id") == expected_definition
+    and build.get("sourceBranch") == expected_branch
+    else 1
+)
+' "$DEFINITION_ID" "$BRANCH" "$build_id" <<<"$build_json"; then
+        echo "Error: build ID $build_id was not found for definition $DEFINITION_ID on branch $BRANCH." >&2
+        return 1
+    fi
+}
+
+_select_build_ids() {
+    local requested_build_id="$1"
+
+    if [[ -n "$requested_build_id" ]]; then
+        _validate_requested_build_id "$requested_build_id" || return 1
+        printf '%s\n' "$requested_build_id"
+    else
+        _get_successful_build_ids
+    fi
 }
 
 _get_artifact_metadata() {
@@ -139,6 +227,7 @@ _download_to_file() {
 download_official_image_file() {
     local target_path="$1"
     local output_pattern="$2"
+    local requested_build_id="${3:-}"
     local build_ids_text
     local build_id
     local metadata
@@ -151,8 +240,10 @@ download_official_image_file() {
     _require_image_commands || return 1
     _validate_output_pattern "$output_pattern" || return 1
 
-    if ! build_ids_text=$(_get_successful_build_ids); then
-        echo "Error: could not list successful builds for definition $DEFINITION_ID on branch $BRANCH." >&2
+    if ! build_ids_text=$(_select_build_ids "$requested_build_id"); then
+        if [[ -z "$requested_build_id" ]]; then
+            echo "Error: could not list successful builds for definition $DEFINITION_ID on branch $BRANCH." >&2
+        fi
         return 1
     fi
     if [[ -z "$build_ids_text" ]]; then
@@ -164,10 +255,18 @@ download_official_image_file() {
         echo "Checking build $build_id..."
 
         if ! metadata=$(_get_artifact_metadata "$build_id"); then
+            if [[ -n "$requested_build_id" ]]; then
+                echo "Error: could not read artifacts for build ID $build_id." >&2
+                return 1
+            fi
             echo "Warning: could not open the Artifacts page for build $build_id; trying the next build." >&2
             continue
         fi
         if [[ -z "$metadata" ]]; then
+            if [[ -n "$requested_build_id" ]]; then
+                echo "Error: build ID $build_id does not contain artifact $ARTIFACT." >&2
+                return 1
+            fi
             echo "Build $build_id does not contain artifact $ARTIFACT; trying the next build."
             continue
         fi
@@ -179,10 +278,18 @@ download_official_image_file() {
             manifest_status=$?
         fi
         if ((manifest_status == 2)); then
+            if [[ -n "$requested_build_id" ]]; then
+                echo "Error: could not read artifact $ARTIFACT from build ID $build_id." >&2
+                return 1
+            fi
             echo "Warning: could not read artifact $ARTIFACT from build $build_id; trying the next build." >&2
             continue
         fi
         if ((manifest_status != 0)); then
+            if [[ -n "$requested_build_id" ]]; then
+                echo "Error: build ID $build_id does not contain $target_path." >&2
+                return 1
+            fi
             echo "Build $build_id does not contain $target_path; trying the next build."
             continue
         fi
@@ -204,6 +311,11 @@ download_official_image_file() {
             return 0
         fi
 
+        if [[ -n "$requested_build_id" ]]; then
+            echo "Error: download from build ID $build_id failed." >&2
+            return 1
+        fi
+
         echo "Warning: download from build $build_id failed; trying the next build." >&2
     done <<<"$build_ids_text"
 
@@ -217,6 +329,7 @@ download_official_image_file() {
 
 download_official_artifact_archive() {
     local output_pattern="$1"
+    local requested_build_id="${2:-}"
     local build_ids_text
     local build_id
     local metadata
@@ -228,8 +341,10 @@ download_official_artifact_archive() {
     _require_image_commands || return 1
     _validate_output_pattern "$output_pattern" || return 1
 
-    if ! build_ids_text=$(_get_successful_build_ids); then
-        echo "Error: could not list successful builds for definition $DEFINITION_ID on branch $BRANCH." >&2
+    if ! build_ids_text=$(_select_build_ids "$requested_build_id"); then
+        if [[ -z "$requested_build_id" ]]; then
+            echo "Error: could not list successful builds for definition $DEFINITION_ID on branch $BRANCH." >&2
+        fi
         return 1
     fi
     if [[ -z "$build_ids_text" ]]; then
@@ -241,16 +356,28 @@ download_official_artifact_archive() {
         echo "Checking build $build_id..."
 
         if ! metadata=$(_get_artifact_metadata "$build_id"); then
+            if [[ -n "$requested_build_id" ]]; then
+                echo "Error: could not read artifacts for build ID $build_id." >&2
+                return 1
+            fi
             echo "Warning: could not open the Artifacts page for build $build_id; trying the next build." >&2
             continue
         fi
         if [[ -z "$metadata" ]]; then
+            if [[ -n "$requested_build_id" ]]; then
+                echo "Error: build ID $build_id does not contain artifact $ARTIFACT." >&2
+                return 1
+            fi
             echo "Build $build_id does not contain artifact $ARTIFACT; trying the next build."
             continue
         fi
 
         IFS=$'\t' read -r artifact_id artifact_url <<<"$metadata"
         if [[ -z "$artifact_url" ]]; then
+            if [[ -n "$requested_build_id" ]]; then
+                echo "Error: artifact $ARTIFACT in build ID $build_id has no download URL." >&2
+                return 1
+            fi
             echo "Warning: artifact $ARTIFACT in build $build_id has no download URL; trying the next build." >&2
             continue
         fi
@@ -263,6 +390,11 @@ download_official_artifact_archive() {
 
         if _download_to_file "$output_file" "$artifact_url"; then
             return 0
+        fi
+
+        if [[ -n "$requested_build_id" ]]; then
+            echo "Error: download from build ID $build_id failed." >&2
+            return 1
         fi
 
         echo "Warning: download from build $build_id failed; trying the next build." >&2

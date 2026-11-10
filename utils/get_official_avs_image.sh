@@ -4,6 +4,9 @@ set -euo pipefail
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 source "$SCRIPT_DIR/image_utils.sh"
 
+parse_build_option "$@"
+
 download_official_image_file \
     "target/sonic-alpinevs-docker.tar.gz" \
-    "sonic-alpinevs-docker-{build_id}.tar.gz"
+    "sonic-alpinevs-docker-{build_id}.tar.gz" \
+    "$BUILD_ID"
