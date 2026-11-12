@@ -27,7 +27,7 @@ elif [ "$SYNC_MODE" == "enable" ]; then
     ORCHAGENT_ARGS+="-s "
 fi
 
-ORCHDAEMON_RING_ENABLED=`sonic-db-cli CONFIG_DB hget "DEVICE_METADATA|localhost" "ring_thread_enabled"`
+ORCHDAEMON_RING_ENABLED=`sonic-db-cli -s CONFIG_DB hget "DEVICE_METADATA|localhost" "ring_thread_enabled"`
 if [[ x"${ORCHDAEMON_RING_ENABLED}" == x"true" ]]; then
     ORCHAGENT_ARGS+="-R "
 fi
