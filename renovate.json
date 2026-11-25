@@ -9,6 +9,12 @@
       "enabled": false
     },
     {
+      "description": "The KNE VM module's main.go uses only the standard library, and its Dockerfile fetches its own Go. Updating go.mod would only drift from that Dockerfile",
+      "matchManagers": ["gomod"],
+      "matchFileNames": ["src/deploy/kne/vm/go.mod"],
+      "enabled": false
+    },
+    {
       "description": "Renovate merges the updates the preset labels automerge: security updates below a major version, except patched modules. It merges on a later run, once every check on the head commit has passed, not only the required ones, and the renovate-approve app has approved the pull request. Reviewers are still assigned, so one that fails reaches them.",
       "matchJsonata": ["isVulnerabilityAlert = true and $not('patched-module' in addLabels)"],
       "matchUpdateTypes": ["patch", "minor"],
