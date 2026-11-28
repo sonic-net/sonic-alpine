@@ -6,7 +6,7 @@
 echo "Waiting for Redis to start..."
 MAX_RETRIES=30
 COUNT=0
-while ! redis-cli ping > /dev/null 2>&1; do
+while ! sonic-db-cli -s APPL_DB ping > /dev/null 2>&1; do
     sleep 1
     COUNT=$((COUNT + 1))
     if [ $COUNT -ge $MAX_RETRIES ]; then

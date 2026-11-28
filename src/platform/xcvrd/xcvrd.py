@@ -92,9 +92,9 @@ class DaemonXcvrd(daemon_base.DaemonBase):
 
         # Initialize database objects
         sel = swsscommon.Select()
-        appl_db = daemon_base.db_connect("APPL_DB")
-        appl_state_db = daemon_base.db_connect("APPL_STATE_DB")
-        state_db = daemon_base.db_connect("STATE_DB")
+        appl_db = daemon_base.db_connect("APPL_DB", use_tcp=False, authenticate=True)
+        appl_state_db = daemon_base.db_connect("APPL_STATE_DB", use_tcp=False, authenticate=True)
+        state_db = daemon_base.db_connect("STATE_DB", use_tcp=False, authenticate=True)
 
         appl_state_port_subscriber_tbl = (
             swsscommon.SubscriberStateTable(appl_state_db, PORT_TABLE)
